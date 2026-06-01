@@ -12,6 +12,10 @@ export const mikrotiksTable = pgTable("mikrotiks", {
   webPort: integer("web_port"),
   note: text("note"),
   status: text("status").notNull().default("disconnected"),
+  model: text("model"),
+  macAddress: text("mac_address"),
+  boardName: text("board_name"),
+  lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
