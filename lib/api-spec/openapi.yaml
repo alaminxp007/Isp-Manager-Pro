@@ -24,6 +24,14 @@ tags:
     description: ISP client management
   - name: zones
     description: Zone management
+  - name: districts
+    description: District management
+  - name: thanas
+    description: Thana management
+  - name: subZones
+    description: Sub-zone management
+  - name: tjBoxes
+    description: TJ/Box management
   - name: packages
     description: Package management
   - name: payments
@@ -461,6 +469,115 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /zone-tree:
+    get:
+      operationId: getZoneTree
+      tags: [zones]
+      summary: Get full zone hierarchy tree
+      responses:
+        "200":
+          description: Full zone tree
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DistrictTree"
+
+  /districts:
+    get:
+      operationId: listDistricts
+      tags: [districts]
+      summary: List all districts
+      responses:
+        "200":
+          description: List of districts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/District"
+    post:
+      operationId: createDistrict
+      tags: [districts]
+      summary: Create a district
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DistrictInput"
+      responses:
+        "201":
+          description: District created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/District"
+
+  /districts/{id}:
+    delete:
+      operationId: deleteDistrict
+      tags: [districts]
+      summary: Delete a district
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /thanas:
+    get:
+      operationId: listThanas
+      tags: [thanas]
+      summary: List all thanas
+      responses:
+        "200":
+          description: List of thanas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Thana"
+    post:
+      operationId: createThana
+      tags: [thanas]
+      summary: Create a thana
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThanaInput"
+      responses:
+        "201":
+          description: Thana created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Thana"
+
+  /thanas/{id}:
+    delete:
+      operationId: deleteThana
+      tags: [thanas]
+      summary: Delete a thana
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
   /zones:
     get:
       operationId: listZones
@@ -492,6 +609,115 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Zone"
+
+  /zones/{id}:
+    delete:
+      operationId: deleteZone
+      tags: [zones]
+      summary: Delete a zone
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /sub-zones:
+    get:
+      operationId: listSubZones
+      tags: [subZones]
+      summary: List all sub-zones
+      responses:
+        "200":
+          description: List of sub-zones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubZone"
+    post:
+      operationId: createSubZone
+      tags: [subZones]
+      summary: Create a sub-zone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubZoneInput"
+      responses:
+        "201":
+          description: Sub-zone created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubZone"
+
+  /sub-zones/{id}:
+    delete:
+      operationId: deleteSubZone
+      tags: [subZones]
+      summary: Delete a sub-zone
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /tj-boxes:
+    get:
+      operationId: listTjBoxes
+      tags: [tjBoxes]
+      summary: List all TJ/Boxes
+      responses:
+        "200":
+          description: List of TJ/Boxes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TjBox"
+    post:
+      operationId: createTjBox
+      tags: [tjBoxes]
+      summary: Create a TJ/Box
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TjBoxInput"
+      responses:
+        "201":
+          description: TJ/Box created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TjBox"
+
+  /tj-boxes/{id}:
+    delete:
+      operationId: deleteTjBox
+      tags: [tjBoxes]
+      summary: Delete a TJ/Box
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
 
   /packages:
     get:
@@ -1195,7 +1421,7 @@ components:
         count:
           type: integer
 
-    Zone:
+    District:
       type: object
       required: [id, name, createdAt]
       properties:
@@ -1209,7 +1435,7 @@ components:
           type: string
           format: date-time
 
-    ZoneInput:
+    DistrictInput:
       type: object
       required: [name]
       properties:
@@ -1217,6 +1443,193 @@ components:
           type: string
         description:
           type: string
+
+    Thana:
+      type: object
+      required: [id, name, districtId, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        districtId:
+          type: integer
+        description:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    ThanaInput:
+      type: object
+      required: [name, districtId]
+      properties:
+        name:
+          type: string
+        districtId:
+          type: integer
+        description:
+          type: string
+
+    Zone:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        thanaId:
+          type: ["integer", "null"]
+        description:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    ZoneInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        thanaId:
+          type: integer
+        description:
+          type: string
+
+    SubZone:
+      type: object
+      required: [id, name, zoneId, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        zoneId:
+          type: integer
+        description:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    SubZoneInput:
+      type: object
+      required: [name, zoneId]
+      properties:
+        name:
+          type: string
+        zoneId:
+          type: integer
+        description:
+          type: string
+
+    TjBox:
+      type: object
+      required: [id, name, subZoneId, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        subZoneId:
+          type: integer
+        description:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    TjBoxInput:
+      type: object
+      required: [name, subZoneId]
+      properties:
+        name:
+          type: string
+        subZoneId:
+          type: integer
+        description:
+          type: string
+
+    TjBoxTree:
+      type: object
+      required: [id, name, subZoneId]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        subZoneId:
+          type: integer
+        description:
+          type: ["string", "null"]
+
+    SubZoneTree:
+      type: object
+      required: [id, name, zoneId, tjBoxes]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        zoneId:
+          type: integer
+        description:
+          type: ["string", "null"]
+        tjBoxes:
+          type: array
+          items:
+            $ref: "#/components/schemas/TjBoxTree"
+
+    ZoneTree:
+      type: object
+      required: [id, name, subZones]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        thanaId:
+          type: ["integer", "null"]
+        description:
+          type: ["string", "null"]
+        subZones:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubZoneTree"
+
+    ThanaTree:
+      type: object
+      required: [id, name, districtId, zones]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        districtId:
+          type: integer
+        description:
+          type: ["string", "null"]
+        zones:
+          type: array
+          items:
+            $ref: "#/components/schemas/ZoneTree"
+
+    DistrictTree:
+      type: object
+      required: [id, name, thanas]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        thanas:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThanaTree"
 
     Package:
       type: object

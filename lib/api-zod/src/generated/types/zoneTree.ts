@@ -5,13 +5,14 @@
  * ISP Portal API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { SubZoneTree } from './subZoneTree';
 
-export interface Zone {
+export interface ZoneTree {
   id: number;
   name: string;
   /** @nullable */
   thanaId?: number | null;
   /** @nullable */
   description?: string | null;
-  createdAt: Date;
+  subZones: SubZoneTree[];
 }

@@ -6,8 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ZoneInput {
+export interface TjBoxInput {
   name: string;
-  thanaId?: number;
+  subZoneId: number;
   description?: string;
 }

@@ -6,8 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ZoneInput {
+export interface SubZoneInput {
   name: string;
-  thanaId?: number;
+  zoneId: number;
   description?: string;
 }

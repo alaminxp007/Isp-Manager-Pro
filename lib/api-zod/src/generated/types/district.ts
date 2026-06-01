@@ -6,8 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ZoneInput {
+export interface District {
+  id: number;
   name: string;
-  thanaId?: number;
-  description?: string;
+  /** @nullable */
+  description?: string | null;
+  createdAt: Date;
 }

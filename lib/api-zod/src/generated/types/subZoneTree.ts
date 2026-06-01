@@ -5,13 +5,13 @@
  * ISP Portal API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { TjBoxTree } from './tjBoxTree';
 
-export interface Zone {
+export interface SubZoneTree {
   id: number;
   name: string;
-  /** @nullable */
-  thanaId?: number | null;
+  zoneId: number;
   /** @nullable */
   description?: string | null;
-  createdAt: Date;
+  tjBoxes: TjBoxTree[];
 }

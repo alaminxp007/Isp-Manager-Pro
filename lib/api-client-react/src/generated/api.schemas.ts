@@ -128,7 +128,7 @@ export interface DailyClientTrendItem {
   count: number;
 }
 
-export interface Zone {
+export interface District {
   id: number;
   name: string;
   /** @nullable */
@@ -136,9 +136,114 @@ export interface Zone {
   createdAt: string;
 }
 
-export interface ZoneInput {
+export interface DistrictInput {
   name: string;
   description?: string;
+}
+
+export interface Thana {
+  id: number;
+  name: string;
+  districtId: number;
+  /** @nullable */
+  description?: string | null;
+  createdAt: string;
+}
+
+export interface ThanaInput {
+  name: string;
+  districtId: number;
+  description?: string;
+}
+
+export interface Zone {
+  id: number;
+  name: string;
+  /** @nullable */
+  thanaId?: number | null;
+  /** @nullable */
+  description?: string | null;
+  createdAt: string;
+}
+
+export interface ZoneInput {
+  name: string;
+  thanaId?: number;
+  description?: string;
+}
+
+export interface SubZone {
+  id: number;
+  name: string;
+  zoneId: number;
+  /** @nullable */
+  description?: string | null;
+  createdAt: string;
+}
+
+export interface SubZoneInput {
+  name: string;
+  zoneId: number;
+  description?: string;
+}
+
+export interface TjBox {
+  id: number;
+  name: string;
+  subZoneId: number;
+  /** @nullable */
+  description?: string | null;
+  createdAt: string;
+}
+
+export interface TjBoxInput {
+  name: string;
+  subZoneId: number;
+  description?: string;
+}
+
+export interface TjBoxTree {
+  id: number;
+  name: string;
+  subZoneId: number;
+  /** @nullable */
+  description?: string | null;
+}
+
+export interface SubZoneTree {
+  id: number;
+  name: string;
+  zoneId: number;
+  /** @nullable */
+  description?: string | null;
+  tjBoxes: TjBoxTree[];
+}
+
+export interface ZoneTree {
+  id: number;
+  name: string;
+  /** @nullable */
+  thanaId?: number | null;
+  /** @nullable */
+  description?: string | null;
+  subZones: SubZoneTree[];
+}
+
+export interface ThanaTree {
+  id: number;
+  name: string;
+  districtId: number;
+  /** @nullable */
+  description?: string | null;
+  zones: ZoneTree[];
+}
+
+export interface DistrictTree {
+  id: number;
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  thanas: ThanaTree[];
 }
 
 export interface Package {

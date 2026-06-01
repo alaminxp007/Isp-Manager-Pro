@@ -31,6 +31,9 @@ import type {
   DashboardStats,
   Department,
   DepartmentInput,
+  District,
+  DistrictInput,
+  DistrictTree,
   EmployeeInput,
   EmployeeSummary,
   ErrorResponse,
@@ -58,6 +61,12 @@ import type {
   Role,
   RoleInput,
   RoleUpdate,
+  SubZone,
+  SubZoneInput,
+  Thana,
+  ThanaInput,
+  TjBox,
+  TjBoxInput,
   User,
   UserInput,
   UserProfile,
@@ -1713,6 +1722,519 @@ export const useDeleteClient = <TError = ErrorType<ErrorResponse>,
       return useMutation(getDeleteClientMutationOptions(options));
     }
 
+export const getGetZoneTreeUrl = () => {
+
+
+
+
+  return `/api/zone-tree`
+}
+
+/**
+ * @summary Get full zone hierarchy tree
+ */
+export const getZoneTree = async ( options?: RequestInit): Promise<DistrictTree[]> => {
+
+  return customFetch<DistrictTree[]>(getGetZoneTreeUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetZoneTreeQueryKey = () => {
+    return [
+    `/api/zone-tree`
+    ] as const;
+    }
+
+
+export const getGetZoneTreeQueryOptions = <TData = Awaited<ReturnType<typeof getZoneTree>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getZoneTree>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetZoneTreeQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getZoneTree>>> = ({ signal }) => getZoneTree({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getZoneTree>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetZoneTreeQueryResult = NonNullable<Awaited<ReturnType<typeof getZoneTree>>>
+export type GetZoneTreeQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get full zone hierarchy tree
+ */
+
+export function useGetZoneTree<TData = Awaited<ReturnType<typeof getZoneTree>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getZoneTree>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetZoneTreeQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListDistrictsUrl = () => {
+
+
+
+
+  return `/api/districts`
+}
+
+/**
+ * @summary List all districts
+ */
+export const listDistricts = async ( options?: RequestInit): Promise<District[]> => {
+
+  return customFetch<District[]>(getListDistrictsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDistrictsQueryKey = () => {
+    return [
+    `/api/districts`
+    ] as const;
+    }
+
+
+export const getListDistrictsQueryOptions = <TData = Awaited<ReturnType<typeof listDistricts>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDistricts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDistrictsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDistricts>>> = ({ signal }) => listDistricts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDistricts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListDistrictsQueryResult = NonNullable<Awaited<ReturnType<typeof listDistricts>>>
+export type ListDistrictsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all districts
+ */
+
+export function useListDistricts<TData = Awaited<ReturnType<typeof listDistricts>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDistricts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListDistrictsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateDistrictUrl = () => {
+
+
+
+
+  return `/api/districts`
+}
+
+/**
+ * @summary Create a district
+ */
+export const createDistrict = async (districtInput: DistrictInput, options?: RequestInit): Promise<District> => {
+
+  return customFetch<District>(getCreateDistrictUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      districtInput,)
+  }
+);}
+
+
+
+
+export const getCreateDistrictMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDistrict>>, TError,{data: BodyType<DistrictInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createDistrict>>, TError,{data: BodyType<DistrictInput>}, TContext> => {
+
+const mutationKey = ['createDistrict'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDistrict>>, {data: BodyType<DistrictInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createDistrict(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateDistrictMutationResult = NonNullable<Awaited<ReturnType<typeof createDistrict>>>
+    export type CreateDistrictMutationBody = BodyType<DistrictInput>
+    export type CreateDistrictMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a district
+ */
+export const useCreateDistrict = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDistrict>>, TError,{data: BodyType<DistrictInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createDistrict>>,
+        TError,
+        {data: BodyType<DistrictInput>},
+        TContext
+      > => {
+      return useMutation(getCreateDistrictMutationOptions(options));
+    }
+
+export const getDeleteDistrictUrl = (id: number,) => {
+
+
+
+
+  return `/api/districts/${id}`
+}
+
+/**
+ * @summary Delete a district
+ */
+export const deleteDistrict = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteDistrictUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteDistrictMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDistrict>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteDistrict>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteDistrict'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteDistrict>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteDistrict(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteDistrictMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDistrict>>>
+
+    export type DeleteDistrictMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a district
+ */
+export const useDeleteDistrict = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDistrict>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteDistrict>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteDistrictMutationOptions(options));
+    }
+
+export const getListThanasUrl = () => {
+
+
+
+
+  return `/api/thanas`
+}
+
+/**
+ * @summary List all thanas
+ */
+export const listThanas = async ( options?: RequestInit): Promise<Thana[]> => {
+
+  return customFetch<Thana[]>(getListThanasUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListThanasQueryKey = () => {
+    return [
+    `/api/thanas`
+    ] as const;
+    }
+
+
+export const getListThanasQueryOptions = <TData = Awaited<ReturnType<typeof listThanas>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listThanas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListThanasQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listThanas>>> = ({ signal }) => listThanas({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listThanas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListThanasQueryResult = NonNullable<Awaited<ReturnType<typeof listThanas>>>
+export type ListThanasQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all thanas
+ */
+
+export function useListThanas<TData = Awaited<ReturnType<typeof listThanas>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listThanas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListThanasQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateThanaUrl = () => {
+
+
+
+
+  return `/api/thanas`
+}
+
+/**
+ * @summary Create a thana
+ */
+export const createThana = async (thanaInput: ThanaInput, options?: RequestInit): Promise<Thana> => {
+
+  return customFetch<Thana>(getCreateThanaUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      thanaInput,)
+  }
+);}
+
+
+
+
+export const getCreateThanaMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createThana>>, TError,{data: BodyType<ThanaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createThana>>, TError,{data: BodyType<ThanaInput>}, TContext> => {
+
+const mutationKey = ['createThana'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createThana>>, {data: BodyType<ThanaInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createThana(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateThanaMutationResult = NonNullable<Awaited<ReturnType<typeof createThana>>>
+    export type CreateThanaMutationBody = BodyType<ThanaInput>
+    export type CreateThanaMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a thana
+ */
+export const useCreateThana = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createThana>>, TError,{data: BodyType<ThanaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createThana>>,
+        TError,
+        {data: BodyType<ThanaInput>},
+        TContext
+      > => {
+      return useMutation(getCreateThanaMutationOptions(options));
+    }
+
+export const getDeleteThanaUrl = (id: number,) => {
+
+
+
+
+  return `/api/thanas/${id}`
+}
+
+/**
+ * @summary Delete a thana
+ */
+export const deleteThana = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteThanaUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteThanaMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteThana>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteThana>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteThana'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteThana>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteThana(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteThanaMutationResult = NonNullable<Awaited<ReturnType<typeof deleteThana>>>
+
+    export type DeleteThanaMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a thana
+ */
+export const useDeleteThana = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteThana>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteThana>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteThanaMutationOptions(options));
+    }
+
 export const getListZonesUrl = () => {
 
 
@@ -1859,6 +2381,512 @@ export const useCreateZone = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getCreateZoneMutationOptions(options));
+    }
+
+export const getDeleteZoneUrl = (id: number,) => {
+
+
+
+
+  return `/api/zones/${id}`
+}
+
+/**
+ * @summary Delete a zone
+ */
+export const deleteZone = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteZoneUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteZoneMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteZone>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteZone>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteZone'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteZone>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteZone(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteZoneMutationResult = NonNullable<Awaited<ReturnType<typeof deleteZone>>>
+
+    export type DeleteZoneMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a zone
+ */
+export const useDeleteZone = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteZone>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteZone>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteZoneMutationOptions(options));
+    }
+
+export const getListSubZonesUrl = () => {
+
+
+
+
+  return `/api/sub-zones`
+}
+
+/**
+ * @summary List all sub-zones
+ */
+export const listSubZones = async ( options?: RequestInit): Promise<SubZone[]> => {
+
+  return customFetch<SubZone[]>(getListSubZonesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSubZonesQueryKey = () => {
+    return [
+    `/api/sub-zones`
+    ] as const;
+    }
+
+
+export const getListSubZonesQueryOptions = <TData = Awaited<ReturnType<typeof listSubZones>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSubZones>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSubZonesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSubZones>>> = ({ signal }) => listSubZones({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSubZones>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListSubZonesQueryResult = NonNullable<Awaited<ReturnType<typeof listSubZones>>>
+export type ListSubZonesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all sub-zones
+ */
+
+export function useListSubZones<TData = Awaited<ReturnType<typeof listSubZones>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSubZones>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListSubZonesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateSubZoneUrl = () => {
+
+
+
+
+  return `/api/sub-zones`
+}
+
+/**
+ * @summary Create a sub-zone
+ */
+export const createSubZone = async (subZoneInput: SubZoneInput, options?: RequestInit): Promise<SubZone> => {
+
+  return customFetch<SubZone>(getCreateSubZoneUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      subZoneInput,)
+  }
+);}
+
+
+
+
+export const getCreateSubZoneMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSubZone>>, TError,{data: BodyType<SubZoneInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSubZone>>, TError,{data: BodyType<SubZoneInput>}, TContext> => {
+
+const mutationKey = ['createSubZone'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSubZone>>, {data: BodyType<SubZoneInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createSubZone(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateSubZoneMutationResult = NonNullable<Awaited<ReturnType<typeof createSubZone>>>
+    export type CreateSubZoneMutationBody = BodyType<SubZoneInput>
+    export type CreateSubZoneMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a sub-zone
+ */
+export const useCreateSubZone = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSubZone>>, TError,{data: BodyType<SubZoneInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createSubZone>>,
+        TError,
+        {data: BodyType<SubZoneInput>},
+        TContext
+      > => {
+      return useMutation(getCreateSubZoneMutationOptions(options));
+    }
+
+export const getDeleteSubZoneUrl = (id: number,) => {
+
+
+
+
+  return `/api/sub-zones/${id}`
+}
+
+/**
+ * @summary Delete a sub-zone
+ */
+export const deleteSubZone = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteSubZoneUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteSubZoneMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSubZone>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteSubZone>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteSubZone'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSubZone>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteSubZone(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteSubZoneMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSubZone>>>
+
+    export type DeleteSubZoneMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a sub-zone
+ */
+export const useDeleteSubZone = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSubZone>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteSubZone>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteSubZoneMutationOptions(options));
+    }
+
+export const getListTjBoxesUrl = () => {
+
+
+
+
+  return `/api/tj-boxes`
+}
+
+/**
+ * @summary List all TJ/Boxes
+ */
+export const listTjBoxes = async ( options?: RequestInit): Promise<TjBox[]> => {
+
+  return customFetch<TjBox[]>(getListTjBoxesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTjBoxesQueryKey = () => {
+    return [
+    `/api/tj-boxes`
+    ] as const;
+    }
+
+
+export const getListTjBoxesQueryOptions = <TData = Awaited<ReturnType<typeof listTjBoxes>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTjBoxes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTjBoxesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTjBoxes>>> = ({ signal }) => listTjBoxes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTjBoxes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTjBoxesQueryResult = NonNullable<Awaited<ReturnType<typeof listTjBoxes>>>
+export type ListTjBoxesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all TJ/Boxes
+ */
+
+export function useListTjBoxes<TData = Awaited<ReturnType<typeof listTjBoxes>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTjBoxes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTjBoxesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateTjBoxUrl = () => {
+
+
+
+
+  return `/api/tj-boxes`
+}
+
+/**
+ * @summary Create a TJ/Box
+ */
+export const createTjBox = async (tjBoxInput: TjBoxInput, options?: RequestInit): Promise<TjBox> => {
+
+  return customFetch<TjBox>(getCreateTjBoxUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tjBoxInput,)
+  }
+);}
+
+
+
+
+export const getCreateTjBoxMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTjBox>>, TError,{data: BodyType<TjBoxInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTjBox>>, TError,{data: BodyType<TjBoxInput>}, TContext> => {
+
+const mutationKey = ['createTjBox'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTjBox>>, {data: BodyType<TjBoxInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTjBox(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTjBoxMutationResult = NonNullable<Awaited<ReturnType<typeof createTjBox>>>
+    export type CreateTjBoxMutationBody = BodyType<TjBoxInput>
+    export type CreateTjBoxMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a TJ/Box
+ */
+export const useCreateTjBox = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTjBox>>, TError,{data: BodyType<TjBoxInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTjBox>>,
+        TError,
+        {data: BodyType<TjBoxInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTjBoxMutationOptions(options));
+    }
+
+export const getDeleteTjBoxUrl = (id: number,) => {
+
+
+
+
+  return `/api/tj-boxes/${id}`
+}
+
+/**
+ * @summary Delete a TJ/Box
+ */
+export const deleteTjBox = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteTjBoxUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteTjBoxMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTjBox>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTjBox>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteTjBox'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTjBox>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteTjBox(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteTjBoxMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTjBox>>>
+
+    export type DeleteTjBoxMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a TJ/Box
+ */
+export const useDeleteTjBox = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTjBox>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteTjBox>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteTjBoxMutationOptions(options));
     }
 
 export const getListPackagesUrl = () => {

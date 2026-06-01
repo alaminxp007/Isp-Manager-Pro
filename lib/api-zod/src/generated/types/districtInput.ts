@@ -6,8 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ZoneInput {
+export interface DistrictInput {
   name: string;
-  thanaId?: number;
   description?: string;
 }

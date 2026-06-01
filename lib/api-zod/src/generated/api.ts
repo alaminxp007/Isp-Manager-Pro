@@ -539,11 +539,107 @@ export const DeleteClientParams = zod.object({
 
 
 /**
+ * @summary Get full zone hierarchy tree
+ */
+export const GetZoneTreeResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "thanas": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "districtId": zod.number(),
+  "description": zod.string().nullish(),
+  "zones": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "thanaId": zod.number().nullish(),
+  "description": zod.string().nullish(),
+  "subZones": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "zoneId": zod.number(),
+  "description": zod.string().nullish(),
+  "tjBoxes": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subZoneId": zod.number(),
+  "description": zod.string().nullish()
+}))
+}))
+}))
+}))
+})
+export const GetZoneTreeResponse = zod.array(GetZoneTreeResponseItem)
+
+
+/**
+ * @summary List all districts
+ */
+export const ListDistrictsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListDistrictsResponse = zod.array(ListDistrictsResponseItem)
+
+
+/**
+ * @summary Create a district
+ */
+export const CreateDistrictBody = zod.object({
+  "name": zod.string(),
+  "description": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete a district
+ */
+export const DeleteDistrictParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List all thanas
+ */
+export const ListThanasResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "districtId": zod.number(),
+  "description": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListThanasResponse = zod.array(ListThanasResponseItem)
+
+
+/**
+ * @summary Create a thana
+ */
+export const CreateThanaBody = zod.object({
+  "name": zod.string(),
+  "districtId": zod.number(),
+  "description": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete a thana
+ */
+export const DeleteThanaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary List all zones
  */
 export const ListZonesResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
+  "thanaId": zod.number().nullish(),
   "description": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
@@ -555,7 +651,78 @@ export const ListZonesResponse = zod.array(ListZonesResponseItem)
  */
 export const CreateZoneBody = zod.object({
   "name": zod.string(),
+  "thanaId": zod.number().optional(),
   "description": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete a zone
+ */
+export const DeleteZoneParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List all sub-zones
+ */
+export const ListSubZonesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "zoneId": zod.number(),
+  "description": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListSubZonesResponse = zod.array(ListSubZonesResponseItem)
+
+
+/**
+ * @summary Create a sub-zone
+ */
+export const CreateSubZoneBody = zod.object({
+  "name": zod.string(),
+  "zoneId": zod.number(),
+  "description": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete a sub-zone
+ */
+export const DeleteSubZoneParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List all TJ/Boxes
+ */
+export const ListTjBoxesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subZoneId": zod.number(),
+  "description": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListTjBoxesResponse = zod.array(ListTjBoxesResponseItem)
+
+
+/**
+ * @summary Create a TJ/Box
+ */
+export const CreateTjBoxBody = zod.object({
+  "name": zod.string(),
+  "subZoneId": zod.number(),
+  "description": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete a TJ/Box
+ */
+export const DeleteTjBoxParams = zod.object({
+  "id": zod.coerce.number()
 })
 
 
