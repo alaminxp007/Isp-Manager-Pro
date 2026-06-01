@@ -707,6 +707,62 @@ export interface EmployeeInput {
   removePortalAccess?: boolean;
 }
 
+export interface Signup {
+  id: number;
+  fullName: string;
+  packageId?: number | null;
+  packageName?: string | null;
+  connectivityType: string;
+  paymentMethod: string;
+  signupFee?: string | null;
+  phone: string;
+  alternativePhone?: string | null;
+  address?: string | null;
+  occupation?: string | null;
+  email?: string | null;
+  nationalId?: string | null;
+  previousIsp?: string | null;
+  feedback?: string | null;
+  agreeConditions?: boolean;
+  status: string;
+  signupDate: string;
+  createdAt: string;
+}
+
+export interface SignupList {
+  signups: Signup[];
+  total: number;
+}
+
+export type SignupStatusUpdateStatus = typeof SignupStatusUpdateStatus[keyof typeof SignupStatusUpdateStatus];
+
+
+export const SignupStatusUpdateStatus = {
+  pending: 'pending',
+  done: 'done',
+} as const;
+
+export interface SignupStatusUpdate {
+  status: SignupStatusUpdateStatus;
+}
+
+export interface SignupInput {
+  fullName: string;
+  packageId?: number | null;
+  connectivityType?: string;
+  paymentMethod?: string;
+  signupFee?: string;
+  phone: string;
+  alternativePhone?: string;
+  address?: string;
+  occupation?: string;
+  email?: string;
+  nationalId?: string;
+  previousIsp?: string;
+  feedback?: string;
+  agreeConditions?: boolean;
+}
+
 export type ListClientsParams = {
 search?: string;
 zoneId?: number;
@@ -737,5 +793,23 @@ referenceStatus?: string;
 search?: string;
 page?: number;
 limit?: number;
+};
+
+export type ListSignupsParams = {
+status?: ListSignupsStatus;
+search?: string;
+};
+
+export type ListSignupsStatus = typeof ListSignupsStatus[keyof typeof ListSignupsStatus];
+
+
+export const ListSignupsStatus = {
+  pending: 'pending',
+  done: 'done',
+} as const;
+
+export type DeleteSignup200 = {
+  success?: boolean;
+  message?: string;
 };
 

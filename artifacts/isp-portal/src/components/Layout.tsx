@@ -37,7 +37,7 @@ const MENU_ITEMS: MenuItem[] = [
   { icon: Receipt, label: "Vendor Bills", href: "#" },
   { icon: Wallet, label: "Others Bill", href: "#" },
   { icon: Package, label: "Store", href: "#" },
-  { icon: UserPlus, label: "New Signup", href: "#" },
+  { icon: UserPlus, label: "New Signup", href: "/signup-clients" },
   { icon: Clock, label: "Upcoming", href: "#" },
   { icon: Network, label: "Network Diagram", href: "#" },
   { icon: UserCog, label: "Agent", href: "#" },

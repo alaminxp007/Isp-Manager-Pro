@@ -24,6 +24,7 @@ import Employee from "@/pages/employee";
 import Departments from "@/pages/departments";
 import NetworkPage from "@/pages/network";
 import Support from "@/pages/support";
+import SignupClients from "@/pages/signup-clients";
 import { Layout } from "@/components/Layout";
 import { Loader2 } from "lucide-react";
 
@@ -133,6 +134,9 @@ function Router() {
       </Route>
       <Route path="/support">
         <ProtectedRoute component={Support} title="Support & Ticket" />
+      </Route>
+      <Route path="/signup-clients">
+        <ProtectedRoute component={SignupClients} title="New Signup Clients" />
       </Route>
       <Route component={NotFound} />
     </Switch>

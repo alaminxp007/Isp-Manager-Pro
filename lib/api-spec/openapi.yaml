@@ -38,6 +38,8 @@ tags:
     description: Online payment records
   - name: bills
     description: Monthly billing management
+  - name: signups
+    description: New signup applications management
 paths:
   /healthz:
     get:
@@ -1190,6 +1192,93 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Payment"
+
+  /signups:
+    get:
+      operationId: listSignups
+      tags: [signups]
+      summary: List signup applications
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, done]
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of signups
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignupList"
+    post:
+      operationId: createSignup
+      tags: [signups]
+      summary: Create a new signup application
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupInput"
+      responses:
+        "201":
+          description: Signup created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Signup"
+
+  /signups/{id}:
+    patch:
+      operationId: updateSignup
+      tags: [signups]
+      summary: Update signup status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupStatusUpdate"
+      responses:
+        "200":
+          description: Signup updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Signup"
+    delete:
+      operationId: deleteSignup
+      tags: [signups]
+      summary: Delete a signup application
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Signup deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
 
 components:
   schemas:
@@ -2387,4 +2476,111 @@ components:
           type: integer
         removePortalAccess:
           type: boolean
+
+    Signup:
+      type: object
+      required: [id, fullName, phone, connectivityType, paymentMethod, status, signupDate, createdAt]
+      properties:
+        id:
+          type: integer
+        fullName:
+          type: string
+        packageId:
+          type: integer
+          nullable: true
+        packageName:
+          type: string
+          nullable: true
+        connectivityType:
+          type: string
+        paymentMethod:
+          type: string
+        signupFee:
+          type: string
+          nullable: true
+        phone:
+          type: string
+        alternativePhone:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        occupation:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        nationalId:
+          type: string
+          nullable: true
+        previousIsp:
+          type: string
+          nullable: true
+        feedback:
+          type: string
+          nullable: true
+        agreeConditions:
+          type: boolean
+        status:
+          type: string
+        signupDate:
+          type: string
+        createdAt:
+          type: string
+
+    SignupList:
+      type: object
+      required: [signups, total]
+      properties:
+        signups:
+          type: array
+          items:
+            $ref: "#/components/schemas/Signup"
+        total:
+          type: integer
+
+    SignupStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, done]
+
+    SignupInput:
+      type: object
+      required: [fullName, phone]
+      properties:
+        fullName:
+          type: string
+        packageId:
+          type: integer
+          nullable: true
+        connectivityType:
+          type: string
+        paymentMethod:
+          type: string
+        signupFee:
+          type: string
+        phone:
+          type: string
+        alternativePhone:
+          type: string
+        address:
+          type: string
+        occupation:
+          type: string
+        email:
+          type: string
+        nationalId:
+          type: string
+        previousIsp:
+          type: string
+        feedback:
+          type: string
+        agreeConditions:
+          type: boolean
+
 

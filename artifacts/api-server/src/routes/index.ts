@@ -13,6 +13,7 @@ import employeesRouter from "./employees";
 import mikrotiksRouter from "./mikrotiks";
 import ticketsRouter from "./tickets";
 import companyRouter from "./company";
+import signupsRouter from "./signups";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(employeesRouter);
 router.use(mikrotiksRouter);
 router.use(ticketsRouter);
 router.use(companyRouter);
+router.use(signupsRouter);
 
 export default router;

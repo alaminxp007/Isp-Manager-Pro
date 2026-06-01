@@ -29,6 +29,7 @@ import type {
   CollectBillResult,
   DailyClientTrendItem,
   DashboardStats,
+  DeleteSignup200,
   Department,
   DepartmentInput,
   District,
@@ -44,6 +45,7 @@ import type {
   ListBillsParams,
   ListClientsParams,
   ListPaymentsParams,
+  ListSignupsParams,
   LoginInput,
   MessageResponse,
   Mikrotik,
@@ -61,6 +63,10 @@ import type {
   Role,
   RoleInput,
   RoleUpdate,
+  Signup,
+  SignupInput,
+  SignupList,
+  SignupStatusUpdate,
   SubZone,
   SubZoneInput,
   Thana,
@@ -4448,5 +4454,302 @@ export const useCreatePayment = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getCreatePaymentMutationOptions(options));
+    }
+
+export const getListSignupsUrl = (params?: ListSignupsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/signups?${stringifiedParams}` : `/api/signups`
+}
+
+/**
+ * @summary List signup applications
+ */
+export const listSignups = async (params?: ListSignupsParams, options?: RequestInit): Promise<SignupList> => {
+
+  return customFetch<SignupList>(getListSignupsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSignupsQueryKey = (params?: ListSignupsParams,) => {
+    return [
+    `/api/signups`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListSignupsQueryOptions = <TData = Awaited<ReturnType<typeof listSignups>>, TError = ErrorType<unknown>>(params?: ListSignupsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSignups>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSignupsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSignups>>> = ({ signal }) => listSignups(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSignups>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListSignupsQueryResult = NonNullable<Awaited<ReturnType<typeof listSignups>>>
+export type ListSignupsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List signup applications
+ */
+
+export function useListSignups<TData = Awaited<ReturnType<typeof listSignups>>, TError = ErrorType<unknown>>(
+ params?: ListSignupsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSignups>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListSignupsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateSignupUrl = () => {
+
+
+
+
+  return `/api/signups`
+}
+
+/**
+ * @summary Create a new signup application
+ */
+export const createSignup = async (signupInput: SignupInput, options?: RequestInit): Promise<Signup> => {
+
+  return customFetch<Signup>(getCreateSignupUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      signupInput,)
+  }
+);}
+
+
+
+
+export const getCreateSignupMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSignup>>, TError,{data: BodyType<SignupInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSignup>>, TError,{data: BodyType<SignupInput>}, TContext> => {
+
+const mutationKey = ['createSignup'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSignup>>, {data: BodyType<SignupInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createSignup(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateSignupMutationResult = NonNullable<Awaited<ReturnType<typeof createSignup>>>
+    export type CreateSignupMutationBody = BodyType<SignupInput>
+    export type CreateSignupMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a new signup application
+ */
+export const useCreateSignup = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSignup>>, TError,{data: BodyType<SignupInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createSignup>>,
+        TError,
+        {data: BodyType<SignupInput>},
+        TContext
+      > => {
+      return useMutation(getCreateSignupMutationOptions(options));
+    }
+
+export const getUpdateSignupUrl = (id: number,) => {
+
+
+
+
+  return `/api/signups/${id}`
+}
+
+/**
+ * @summary Update signup status
+ */
+export const updateSignup = async (id: number,
+    signupStatusUpdate: SignupStatusUpdate, options?: RequestInit): Promise<Signup> => {
+
+  return customFetch<Signup>(getUpdateSignupUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      signupStatusUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateSignupMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSignup>>, TError,{id: number;data: BodyType<SignupStatusUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateSignup>>, TError,{id: number;data: BodyType<SignupStatusUpdate>}, TContext> => {
+
+const mutationKey = ['updateSignup'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSignup>>, {id: number;data: BodyType<SignupStatusUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateSignup(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateSignupMutationResult = NonNullable<Awaited<ReturnType<typeof updateSignup>>>
+    export type UpdateSignupMutationBody = BodyType<SignupStatusUpdate>
+    export type UpdateSignupMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update signup status
+ */
+export const useUpdateSignup = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSignup>>, TError,{id: number;data: BodyType<SignupStatusUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateSignup>>,
+        TError,
+        {id: number;data: BodyType<SignupStatusUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateSignupMutationOptions(options));
+    }
+
+export const getDeleteSignupUrl = (id: number,) => {
+
+
+
+
+  return `/api/signups/${id}`
+}
+
+/**
+ * @summary Delete a signup application
+ */
+export const deleteSignup = async (id: number, options?: RequestInit): Promise<DeleteSignup200> => {
+
+  return customFetch<DeleteSignup200>(getDeleteSignupUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteSignupMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSignup>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteSignup>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteSignup'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSignup>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteSignup(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteSignupMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSignup>>>
+
+    export type DeleteSignupMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a signup application
+ */
+export const useDeleteSignup = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSignup>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteSignup>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteSignupMutationOptions(options));
     }
 

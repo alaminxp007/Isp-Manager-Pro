@@ -1236,3 +1236,105 @@ export const CreatePaymentBody = zod.object({
 })
 
 
+/**
+ * @summary List signup applications
+ */
+export const ListSignupsQueryParams = zod.object({
+  "status": zod.enum(['pending', 'done']).optional(),
+  "search": zod.coerce.string().optional()
+})
+
+export const ListSignupsResponse = zod.object({
+  "signups": zod.array(zod.object({
+  "id": zod.number(),
+  "fullName": zod.string(),
+  "packageId": zod.number().nullish(),
+  "packageName": zod.string().nullish(),
+  "connectivityType": zod.string(),
+  "paymentMethod": zod.string(),
+  "signupFee": zod.string().nullish(),
+  "phone": zod.string(),
+  "alternativePhone": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "occupation": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "nationalId": zod.string().nullish(),
+  "previousIsp": zod.string().nullish(),
+  "feedback": zod.string().nullish(),
+  "agreeConditions": zod.boolean().optional(),
+  "status": zod.string(),
+  "signupDate": zod.string(),
+  "createdAt": zod.string()
+})),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Create a new signup application
+ */
+export const CreateSignupBody = zod.object({
+  "fullName": zod.string(),
+  "packageId": zod.number().nullish(),
+  "connectivityType": zod.string().optional(),
+  "paymentMethod": zod.string().optional(),
+  "signupFee": zod.string().optional(),
+  "phone": zod.string(),
+  "alternativePhone": zod.string().optional(),
+  "address": zod.string().optional(),
+  "occupation": zod.string().optional(),
+  "email": zod.string().optional(),
+  "nationalId": zod.string().optional(),
+  "previousIsp": zod.string().optional(),
+  "feedback": zod.string().optional(),
+  "agreeConditions": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Update signup status
+ */
+export const UpdateSignupParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateSignupBody = zod.object({
+  "status": zod.enum(['pending', 'done'])
+})
+
+export const UpdateSignupResponse = zod.object({
+  "id": zod.number(),
+  "fullName": zod.string(),
+  "packageId": zod.number().nullish(),
+  "packageName": zod.string().nullish(),
+  "connectivityType": zod.string(),
+  "paymentMethod": zod.string(),
+  "signupFee": zod.string().nullish(),
+  "phone": zod.string(),
+  "alternativePhone": zod.string().nullish(),
+  "address": zod.string().nullish(),
+  "occupation": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "nationalId": zod.string().nullish(),
+  "previousIsp": zod.string().nullish(),
+  "feedback": zod.string().nullish(),
+  "agreeConditions": zod.boolean().optional(),
+  "status": zod.string(),
+  "signupDate": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a signup application
+ */
+export const DeleteSignupParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteSignupResponse = zod.object({
+  "success": zod.boolean().optional(),
+  "message": zod.string().optional()
+})
+
+
