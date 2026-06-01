@@ -1,5 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import cron from "node-cron";
+import { generateMonthlyBills, currentMonthKey } from "./lib/billGenerator";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +24,18 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  // Run at 00:05 on the 1st of every month
+  cron.schedule("5 0 1 * *", async () => {
+    const month = currentMonthKey();
+    logger.info({ month }, "Running scheduled monthly bill generation");
+    try {
+      const result = await generateMonthlyBills(month);
+      logger.info(result, "Scheduled bill generation complete");
+    } catch (err) {
+      logger.error({ err }, "Scheduled bill generation failed");
+    }
+  });
+
+  logger.info("Monthly bill scheduler registered (runs 1st of each month at 00:05)");
 });

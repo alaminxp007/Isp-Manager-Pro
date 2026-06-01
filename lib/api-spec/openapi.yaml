@@ -3,13 +3,33 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ISP Portal API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User management
+  - name: roles
+    description: Role management
+  - name: permissions
+    description: Permission management
+  - name: dashboard
+    description: Dashboard statistics
+  - name: clients
+    description: ISP client management
+  - name: zones
+    description: Zone management
+  - name: packages
+    description: Package management
+  - name: payments
+    description: Online payment records
+  - name: bills
+    description: Monthly billing management
 paths:
   /healthz:
     get:
@@ -24,6 +44,927 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users/employees
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create a new user/employee
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      summary: Delete a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /roles:
+    get:
+      operationId: listRoles
+      tags: [roles]
+      summary: List all roles
+      responses:
+        "200":
+          description: List of roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Role"
+    post:
+      operationId: createRole
+      tags: [roles]
+      summary: Create a new role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+
+  /roles/{id}:
+    get:
+      operationId: getRole
+      tags: [roles]
+      summary: Get a role by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Role found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateRole
+      tags: [roles]
+      summary: Update a role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+    delete:
+      operationId: deleteRole
+      tags: [roles]
+      summary: Delete a role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /permissions:
+    get:
+      operationId: listPermissions
+      tags: [permissions]
+      summary: List all permissions
+      responses:
+        "200":
+          description: List of permissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Permission"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/client-trend:
+    get:
+      operationId: getDashboardClientTrend
+      tags: [dashboard]
+      summary: Daily new client registrations for the last 30 days
+      responses:
+        "200":
+          description: Client trend data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DailyClientTrendItem"
+
+  /clients:
+    get:
+      operationId: listClients
+      tags: [clients]
+      summary: List all clients
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: zoneId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated list of clients
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedClients"
+    post:
+      operationId: createClient
+      tags: [clients]
+      summary: Create a new client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientInput"
+      responses:
+        "201":
+          description: Client created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /clients/{id}:
+    get:
+      operationId: getClient
+      tags: [clients]
+      summary: Get a client by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Client record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateClient
+      tags: [clients]
+      summary: Update a client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientUpdate"
+      responses:
+        "200":
+          description: Updated client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteClient
+      tags: [clients]
+      summary: Delete a client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /zones:
+    get:
+      operationId: listZones
+      tags: [zones]
+      summary: List all zones
+      responses:
+        "200":
+          description: List of zones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Zone"
+    post:
+      operationId: createZone
+      tags: [zones]
+      summary: Create a zone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ZoneInput"
+      responses:
+        "201":
+          description: Zone created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Zone"
+
+  /packages:
+    get:
+      operationId: listPackages
+      tags: [packages]
+      summary: List all packages
+      responses:
+        "200":
+          description: List of packages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Package"
+    post:
+      operationId: createPackage
+      tags: [packages]
+      summary: Create a package
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PackageInput"
+      responses:
+        "201":
+          description: Package created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
+
+  /bills:
+    get:
+      operationId: listBills
+      tags: [bills]
+      summary: List all bills
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+        - name: zoneId
+          in: query
+          schema:
+            type: integer
+        - name: clientId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: Bill list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedBills"
+
+  /bills/{id}/collect:
+    patch:
+      operationId: collectBill
+      tags: [bills]
+      summary: Collect payment for a bill (mark as paid)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollectBillInput"
+      responses:
+        "200":
+          description: Bill updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectBillResult"
+
+  /bills/summary:
+    get:
+      operationId: getBillsSummary
+      tags: [bills]
+      summary: Zone-wise billing summary for a month
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bills summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillsSummaryResponse"
+
+  /bills/monthly-trend:
+    get:
+      operationId: getBillsMonthlyTrend
+      tags: [bills]
+      summary: Monthly bill vs collection trend (last 12 months)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Monthly trend data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonthlyTrendItem"
+
+  /bills/generate:
+    post:
+      operationId: generateMonthlyBills
+      tags: [bills]
+      summary: Generate bills for all active clients for a given month
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateBillsInput"
+      responses:
+        "200":
+          description: Generation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateBillsResult"
+
+  /mikrotiks:
+    get:
+      operationId: listMikrotiks
+      tags: [mikrotiks]
+      summary: List all MikroTik routers with client stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: MikroTik list and stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MikrotiksResponse"
+    post:
+      operationId: createMikrotik
+      tags: [mikrotiks]
+      summary: Add a MikroTik router
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MikrotikInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mikrotik"
+
+  /mikrotiks/{id}:
+    patch:
+      operationId: updateMikrotik
+      tags: [mikrotiks]
+      summary: Update a MikroTik router
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MikrotikInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mikrotik"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteMikrotik
+      tags: [mikrotiks]
+      summary: Delete a MikroTik router
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /departments:
+    get:
+      operationId: listDepartments
+      tags: [departments]
+      summary: List all departments
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of departments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Department"
+    post:
+      operationId: createDepartment
+      tags: [departments]
+      summary: Create a department
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepartmentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Department"
+
+  /departments/{id}:
+    patch:
+      operationId: updateDepartment
+      tags: [departments]
+      summary: Update a department
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepartmentInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Department"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteDepartment
+      tags: [departments]
+      summary: Delete a department
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /employees:
+    get:
+      operationId: listEmployees
+      tags: [employees]
+      summary: List all employees
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EmployeeSummary"
+    post:
+      operationId: createEmployee
+      tags: [employees]
+      summary: Create an employee
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmployeeInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmployeeSummary"
+
+  /employees/{id}:
+    patch:
+      operationId: updateEmployee
+      tags: [employees]
+      summary: Update an employee
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmployeeInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmployeeSummary"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteEmployee
+      tags: [employees]
+      summary: Delete an employee
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /payments:
+    get:
+      operationId: listPayments
+      tags: [payments]
+      summary: List online payments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+        - name: gateway
+          in: query
+          schema:
+            type: string
+        - name: referenceStatus
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: Payment list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedPayments"
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Create a payment record
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentInput"
+      responses:
+        "201":
+          description: Payment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
 components:
   schemas:
     HealthStatus:
@@ -33,4 +974,1004 @@ components:
           type: string
       required:
         - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    LoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: "#/components/schemas/UserProfile"
+        token:
+          type: string
+
+    UserProfile:
+      type: object
+      required: [id, username, fullName, email, role]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+        role:
+          $ref: "#/components/schemas/Role"
+        isSuperAdmin:
+          type: boolean
+
+    User:
+      type: object
+      required: [id, username, fullName, email, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        isSuperAdmin:
+          type: boolean
+        roleId:
+          type: ["integer", "null"]
+        roleName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    UserInput:
+      type: object
+      required: [username, password, fullName, email]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        roleId:
+          type: integer
+        isActive:
+          type: boolean
+
+    UserUpdate:
+      type: object
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        roleId:
+          type: ["integer", "null"]
+        isActive:
+          type: boolean
+        password:
+          type: string
+
+    Role:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Permission"
+        createdAt:
+          type: string
+          format: date-time
+
+    RoleInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        permissionIds:
+          type: array
+          items:
+            type: integer
+
+    RoleUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        permissionIds:
+          type: array
+          items:
+            type: integer
+
+    Permission:
+      type: object
+      required: [id, name, module, action]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        module:
+          type: string
+        action:
+          type: string
+        description:
+          type: ["string", "null"]
+
+    DashboardStats:
+      type: object
+      required: [totalUsers, activeUsers, totalRoles, totalPermissions, totalClients, activeClients, inactiveClients, onlineClients, newClientsThisMonth, currentMonthBill, currentMonthCollection, currentMonthDiscount, currentMonthDue, prevMonthBill, prevMonthCollection, prevMonthDue, totalDues, todayCollection]
+      properties:
+        totalUsers:
+          type: integer
+        activeUsers:
+          type: integer
+        totalRoles:
+          type: integer
+        totalPermissions:
+          type: integer
+        totalClients:
+          type: integer
+        activeClients:
+          type: integer
+        inactiveClients:
+          type: integer
+        onlineClients:
+          type: integer
+        newClientsThisMonth:
+          type: integer
+        currentMonthBill:
+          type: string
+        currentMonthCollection:
+          type: string
+        currentMonthDiscount:
+          type: string
+        currentMonthDue:
+          type: string
+        prevMonthBill:
+          type: string
+        prevMonthCollection:
+          type: string
+        prevMonthDue:
+          type: string
+        totalDues:
+          type: string
+        todayCollection:
+          type: string
+
+    DailyClientTrendItem:
+      type: object
+      required: [date, count]
+      properties:
+        date:
+          type: string
+        count:
+          type: integer
+
+    Zone:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    ZoneInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    Package:
+      type: object
+      required: [id, name, price, createdAt, activeClients, inactiveClients, totalClients]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        price:
+          type: string
+        speed:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        activeClients:
+          type: integer
+        inactiveClients:
+          type: integer
+        totalClients:
+          type: integer
+
+    PackageInput:
+      type: object
+      required: [name, price]
+      properties:
+        name:
+          type: string
+        price:
+          type: string
+        speed:
+          type: string
+        description:
+          type: string
+
+    Client:
+      type: object
+      required: [id, comId, username, fullName, status, isOnline, createdAt]
+      properties:
+        id:
+          type: integer
+        comId:
+          type: string
+        username:
+          type: string
+        fullName:
+          type: string
+        phone:
+          type: ["string", "null"]
+        zoneId:
+          type: ["integer", "null"]
+        subZone:
+          type: ["string", "null"]
+        zoneName:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        flatNo:
+          type: ["string", "null"]
+        houseNo:
+          type: ["string", "null"]
+        roadNo:
+          type: ["string", "null"]
+        thana:
+          type: ["string", "null"]
+        permanentAddress:
+          type: ["string", "null"]
+        packageId:
+          type: ["integer", "null"]
+        packageName:
+          type: ["string", "null"]
+        packagePrice:
+          type: ["string", "null"]
+        ipAddress:
+          type: ["string", "null"]
+        macAddress:
+          type: ["string", "null"]
+        connectionType:
+          type: ["string", "null"]
+        cableType:
+          type: ["string", "null"]
+        clientType:
+          type: ["string", "null"]
+        connectivityType:
+          type: ["string", "null"]
+        paymentDate:
+          type: ["integer", "null"]
+        billDate:
+          type: ["integer", "null"]
+        status:
+          type: string
+        balance:
+          type: ["string", "null"]
+        isOnline:
+          type: boolean
+        email:
+          type: ["string", "null"]
+        alternativePhone:
+          type: ["string", "null"]
+        fatherName:
+          type: ["string", "null"]
+        nationalId:
+          type: ["string", "null"]
+        occupation:
+          type: ["string", "null"]
+        signupFee:
+          type: ["string", "null"]
+        paymentMethod:
+          type: ["string", "null"]
+        joiningDate:
+          type: ["string", "null"]
+        permanentDiscount:
+          type: ["string", "null"]
+        permanentExtraBill:
+          type: ["string", "null"]
+        note:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    ClientInput:
+      type: object
+      required: [comId, username, fullName]
+      properties:
+        comId:
+          type: string
+        username:
+          type: string
+        fullName:
+          type: string
+        phone:
+          type: string
+        zoneId:
+          type: integer
+        subZone:
+          type: string
+        address:
+          type: string
+        flatNo:
+          type: string
+        houseNo:
+          type: string
+        roadNo:
+          type: string
+        thana:
+          type: string
+        permanentAddress:
+          type: string
+        packageId:
+          type: integer
+        ipAddress:
+          type: string
+        macAddress:
+          type: string
+        connectionType:
+          type: string
+        cableType:
+          type: string
+        clientType:
+          type: string
+        connectivityType:
+          type: string
+        paymentDate:
+          type: integer
+        billDate:
+          type: integer
+        status:
+          type: string
+        balance:
+          type: string
+        isOnline:
+          type: boolean
+        email:
+          type: string
+        alternativePhone:
+          type: string
+        fatherName:
+          type: string
+        nationalId:
+          type: string
+        occupation:
+          type: string
+        signupFee:
+          type: string
+        paymentMethod:
+          type: string
+        joiningDate:
+          type: string
+        permanentDiscount:
+          type: string
+        permanentExtraBill:
+          type: string
+        note:
+          type: string
+
+    ClientUpdate:
+      type: object
+      properties:
+        fullName:
+          type: string
+        phone:
+          type: string
+        zoneId:
+          type: ["integer", "null"]
+        address:
+          type: string
+        packageId:
+          type: ["integer", "null"]
+        ipAddress:
+          type: string
+        macAddress:
+          type: string
+        connectionType:
+          type: string
+        paymentDate:
+          type: integer
+        billDate:
+          type: integer
+        status:
+          type: string
+        balance:
+          type: string
+        isOnline:
+          type: boolean
+        email:
+          type: string
+
+    PaginatedClients:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Client"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    BillItem:
+      type: object
+      required: [id, clientId, month, generatedAmount, collectedAmount, discount, extraBill, payableAmount, status, createdAt]
+      properties:
+        id:
+          type: integer
+        clientId:
+          type: integer
+        comId:
+          type: ["string", "null"]
+        username:
+          type: ["string", "null"]
+        fullName:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        zoneName:
+          type: ["string", "null"]
+        zoneId:
+          type: ["integer", "null"]
+        address:
+          type: ["string", "null"]
+        packageName:
+          type: ["string", "null"]
+        packagePrice:
+          type: ["string", "null"]
+        ipAddress:
+          type: ["string", "null"]
+        isOnline:
+          type: boolean
+        clientStatus:
+          type: string
+        paymentDate:
+          type: ["integer", "null"]
+        billDate:
+          type: ["integer", "null"]
+        month:
+          type: string
+        generatedAmount:
+          type: string
+        collectedAmount:
+          type: string
+        discount:
+          type: string
+        extraBill:
+          type: string
+        payableAmount:
+          type: string
+        status:
+          type: string
+        note:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    PaginatedBills:
+      type: object
+      required: [data, total, page, limit, totalBill, totalPaid, totalDue, totalOnline, totalOffline]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BillItem"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalBill:
+          type: integer
+        totalPaid:
+          type: integer
+        totalDue:
+          type: integer
+        totalOnline:
+          type: integer
+        totalOffline:
+          type: integer
+
+    ZoneBillSummary:
+      type: object
+      required: [zoneId, zoneName, activeClients, inactiveClients, generatedBill, collection, discount, totalDue, collectionRatio]
+      properties:
+        zoneId:
+          type: integer
+        zoneName:
+          type: string
+        activeClients:
+          type: integer
+        inactiveClients:
+          type: integer
+        generatedBill:
+          type: string
+        collection:
+          type: string
+        discount:
+          type: string
+        totalDue:
+          type: string
+        collectionRatio:
+          type: string
+
+    BillsSummaryResponse:
+      type: object
+      required: [month, zones, totalGeneratedBill, totalCollection, totalDiscount, totalDue]
+      properties:
+        month:
+          type: string
+        zones:
+          type: array
+          items:
+            $ref: "#/components/schemas/ZoneBillSummary"
+        totalGeneratedBill:
+          type: string
+        totalCollection:
+          type: string
+        totalDiscount:
+          type: string
+        totalDue:
+          type: string
+
+    MonthlyTrendItem:
+      type: object
+      required: [month, bill, collection, discount]
+      properties:
+        month:
+          type: string
+        bill:
+          type: number
+        collection:
+          type: number
+        discount:
+          type: number
+
+    Payment:
+      type: object
+      required: [id, gateway, amount, charged, countAmount, status, createdAt]
+      properties:
+        id:
+          type: integer
+        gateway:
+          type: string
+        transactionId:
+          type: ["string", "null"]
+        deviceId:
+          type: ["string", "null"]
+        referenceId:
+          type: ["string", "null"]
+        autoClientId:
+          type: ["integer", "null"]
+        autoClientName:
+          type: ["string", "null"]
+        autoClientPhone:
+          type: ["string", "null"]
+        autoClientUsername:
+          type: ["string", "null"]
+        forceClientId:
+          type: ["integer", "null"]
+        forceClientName:
+          type: ["string", "null"]
+        forceClientPhone:
+          type: ["string", "null"]
+        forceClientUsername:
+          type: ["string", "null"]
+        amount:
+          type: string
+        charged:
+          type: string
+        countAmount:
+          type: string
+        status:
+          type: string
+        note:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    CollectBillInput:
+      type: object
+      required: [collectedAmount]
+      properties:
+        collectedAmount:
+          type: string
+        discount:
+          type: string
+        extraBill:
+          type: string
+        note:
+          type: string
+        paymentMethod:
+          type: string
+
+    CollectBillResult:
+      type: object
+      required: [id, clientId, month, generatedAmount, collectedAmount, discount, extraBill, payableAmount, status, createdAt]
+      properties:
+        id:
+          type: integer
+        clientId:
+          type: integer
+        month:
+          type: string
+        generatedAmount:
+          type: string
+        collectedAmount:
+          type: string
+        discount:
+          type: string
+        extraBill:
+          type: string
+        payableAmount:
+          type: string
+        status:
+          type: string
+        note:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    PaymentInput:
+      type: object
+      required: [gateway, amount]
+      properties:
+        gateway:
+          type: string
+        transactionId:
+          type: string
+        deviceId:
+          type: string
+        referenceId:
+          type: string
+        autoClientId:
+          type: integer
+        forceClientId:
+          type: integer
+        amount:
+          type: string
+        charged:
+          type: string
+        countAmount:
+          type: string
+        status:
+          type: string
+        note:
+          type: string
+
+    PaginatedPayments:
+      type: object
+      required: [data, total, page, limit, totalCollection, totalCharged, totalCount]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Payment"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalCollection:
+          type: string
+        totalCharged:
+          type: string
+        totalCount:
+          type: string
+
+    GenerateBillsInput:
+      type: object
+      properties:
+        month:
+          type: string
+          description: "Month in YYYY-MM format. Defaults to current month if omitted."
+          example: "2026-05"
+
+    GenerateBillsResult:
+      type: object
+      required: [month, generated, skipped, errors]
+      properties:
+        month:
+          type: string
+          description: The month bills were generated for
+        generated:
+          type: integer
+          description: Number of new bills created
+        skipped:
+          type: integer
+          description: Number of clients already billed for this month
+        errors:
+          type: integer
+          description: Number of clients that failed to generate a bill
+
+    Mikrotik:
+      type: object
+      required: [id, name, publicIp, login, password, autoMkSync, autoSync, activeGraph, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        publicIp:
+          type: string
+        login:
+          type: string
+        password:
+          type: string
+        autoMkSync:
+          type: boolean
+        autoSync:
+          type: boolean
+        activeGraph:
+          type: boolean
+        webPort:
+          type: ["integer", "null"]
+        note:
+          type: ["string", "null"]
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MikrotikInput:
+      type: object
+      required: [name, publicIp, login, password]
+      properties:
+        name:
+          type: string
+        publicIp:
+          type: string
+        login:
+          type: string
+        password:
+          type: string
+        autoMkSync:
+          type: boolean
+        autoSync:
+          type: boolean
+        activeGraph:
+          type: boolean
+        webPort:
+          type: integer
+        note:
+          type: string
+        status:
+          type: string
+
+    MikrotikStats:
+      type: object
+      required: [totalClients, activeClients, inactiveClients, onlineClients]
+      properties:
+        totalClients:
+          type: integer
+        activeClients:
+          type: integer
+        inactiveClients:
+          type: integer
+        onlineClients:
+          type: integer
+
+    MikrotiksResponse:
+      type: object
+      required: [mikrotiks, stats]
+      properties:
+        mikrotiks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Mikrotik"
+        stats:
+          $ref: "#/components/schemas/MikrotikStats"
+
+    Department:
+      type: object
+      required: [id, name, employeeCount, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        employeeCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    DepartmentInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    EmployeeSummary:
+      type: object
+      required: [id, employeeId, fullName, hasPortalAccess, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        employeeId:
+          type: string
+        userId:
+          type: ["integer", "null"]
+        hasPortalAccess:
+          type: boolean
+        portalUsername:
+          type: ["string", "null"]
+        fullName:
+          type: string
+        designation:
+          type: ["string", "null"]
+        departmentId:
+          type: ["integer", "null"]
+        departmentName:
+          type: ["string", "null"]
+        gender:
+          type: ["string", "null"]
+        joiningDate:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        personalContact:
+          type: ["string", "null"]
+        basicSalary:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EmployeeInput:
+      type: object
+      required: [fullName]
+      properties:
+        fullName:
+          type: string
+        employeeId:
+          type: string
+        designation:
+          type: string
+        departmentId:
+          type: integer
+        fatherName:
+          type: string
+        motherName:
+          type: string
+        dateOfBirth:
+          type: string
+        joiningDate:
+          type: string
+        gender:
+          type: string
+        maritalStatus:
+          type: string
+        bloodGroup:
+          type: string
+        nationalId:
+          type: string
+        basicSalary:
+          type: string
+        mobileBill:
+          type: string
+        houseRent:
+          type: string
+        medical:
+          type: string
+        food:
+          type: string
+        otherAllowances:
+          type: string
+        providentFund:
+          type: string
+        professionalTax:
+          type: string
+        incomeTax:
+          type: string
+        presentAddress:
+          type: string
+        permanentAddress:
+          type: string
+        personalContact:
+          type: string
+        officeContact:
+          type: string
+        familyContact:
+          type: string
+        firstReference:
+          type: string
+        secondReference:
+          type: string
+        email:
+          type: string
+        skype:
+          type: string
+        portalUsername:
+          type: string
+        portalPassword:
+          type: string
+        portalRoleId:
+          type: integer
+        removePortalAccess:
+          type: boolean
 
