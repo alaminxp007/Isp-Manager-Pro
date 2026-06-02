@@ -8,6 +8,7 @@ export const packagesTable = pgTable("packages", {
   price: numeric("price", { precision: 10, scale: 2 }).notNull().default("0"),
   speed: text("speed"),
   description: text("description"),
+  mikrotikProfile: text("mikrotik_profile"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

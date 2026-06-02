@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePermission } from "@/hooks/usePermission";
 import {
@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  Layers, Plus, Edit2, RefreshCw, ChevronDown, Search, X
+  Layers, Plus, Edit2, RefreshCw, ChevronDown, Search, X, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,11 +22,14 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
+type MkProfile = { name: string; rateLimit: string | null; mikrotikName: string };
+
 const packageSchema = z.object({
   name: z.string().min(1, "Package name is required"),
   price: z.string().min(1, "Price is required"),
   speed: z.string().optional(),
   description: z.string().optional(),
+  mikrotikProfile: z.string().optional(),
 });
 
 type PackageFormValues = z.infer<typeof packageSchema>;
@@ -38,18 +41,45 @@ export default function Packages() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"all" | "reseller">("all");
+  const [profiles, setProfiles] = useState<MkProfile[]>([]);
+  const [profilesLoading, setProfilesLoading] = useState(false);
+
+  const token = localStorage.getItem("isp_token") ?? "";
 
   const { data: packages = [], isLoading } = useListPackages();
   const createPackage = useCreatePackage();
 
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageSchema),
-    defaultValues: { name: "", price: "", speed: "", description: "" },
+    defaultValues: { name: "", price: "", speed: "", description: "", mikrotikProfile: "" },
   });
+
+  async function fetchProfiles() {
+    setProfilesLoading(true);
+    try {
+      const res = await fetch("/api/mikrotiks/profiles", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json() as { profiles: MkProfile[] };
+        setProfiles(data.profiles ?? []);
+      }
+    } catch {
+      // silently fail — profiles just won't populate
+    } finally {
+      setProfilesLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (isAddOpen && profiles.length === 0) {
+      fetchProfiles();
+    }
+  }, [isAddOpen]);
 
   const onSubmit = (values: PackageFormValues) => {
     createPackage.mutate(
-      { data: values },
+      { data: { ...values, mikrotikProfile: values.mikrotikProfile || undefined } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPackagesQueryKey() });
@@ -57,16 +87,18 @@ export default function Packages() {
           setIsAddOpen(false);
           form.reset();
         },
-        onError: (err: any) => {
-          toast({ title: "Error creating package", description: err.message, variant: "destructive" });
+        onError: (err: unknown) => {
+          const msg = err instanceof Error ? err.message : "Unknown error";
+          toast({ title: "Error creating package", description: msg, variant: "destructive" });
         }
       }
     );
   };
 
-  const filtered = packages.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = (packages as Array<{
+    id: number; name: string; price: string; speed?: string | null;
+    mikrotikProfile?: string | null; activeClients: number; inactiveClients: number; totalClients: number;
+  }>).filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="flex flex-col h-full bg-slate-50 text-slate-800">
@@ -77,59 +109,50 @@ export default function Packages() {
           <Layers className="w-4 h-4 text-slate-500" />
           Packages | Profiles
         </h2>
-
         <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="outline" className="h-8 text-xs border-slate-300 bg-white text-slate-700 font-semibold">
-                ALL PACKAGES <ChevronDown className="w-3 h-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="bg-white border-slate-200 text-xs w-40">
-              <DropdownMenuItem onClick={() => setViewMode("all")} className="cursor-pointer">All Packages</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setViewMode("reseller")} className="cursor-pointer">Reseller Packages</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button size="sm" variant="outline" className="h-8 text-xs border-slate-300 bg-white text-slate-700 font-semibold">
-            ADD RESELLER PACKAGES
-          </Button>
-
-          {can("packages.create") && (
-            <Button
-              size="sm"
-              className="h-8 text-xs bg-sky-500 hover:bg-sky-600 text-white font-semibold"
-              onClick={() => setIsAddOpen(true)}
-            >
-              <Plus className="w-3.5 h-3.5 mr-1" /> ADD PACKAGES
-            </Button>
-          )}
-
           <Button
             size="sm"
-            variant="ghost"
-            className="h-8 w-8 p-0 text-slate-500 hover:text-slate-800"
+            variant="outline"
+            className="h-8 text-xs gap-1.5 border-slate-300 text-slate-600"
             onClick={() => queryClient.invalidateQueries({ queryKey: getListPackagesQueryKey() })}
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className="w-3 h-3" />
+            Refresh
           </Button>
+          {can("packages:create") && (
+            <Button
+              size="sm"
+              className="h-8 text-xs gap-1.5 bg-sky-500 hover:bg-sky-600 text-white"
+              onClick={() => setIsAddOpen(true)}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              ADD
+            </Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="h-8 text-xs gap-1 border-slate-300 text-slate-700">
+                {viewMode === "all" ? "All Packages" : "Reseller"}
+                <ChevronDown className="w-3 h-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="text-xs">
+              <DropdownMenuItem onClick={() => setViewMode("all")} className="cursor-pointer">All Packages</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setViewMode("reseller")} className="cursor-pointer">Reseller</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      {/* Sub-header */}
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-xs text-slate-500">
-          Showing {viewMode === "all" ? "All" : "Reseller"} Packages | Profiles
-        </p>
-        <div className="relative w-48">
-          <Input
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-7 text-xs bg-white border-slate-200 pr-7"
-          />
-          <Search className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2" />
-        </div>
+      {/* Search */}
+      <div className="mb-3 relative w-64">
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search packages..."
+          className="h-8 text-xs pr-7 border-slate-200 bg-white"
+        />
+        <Search className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2" />
       </div>
 
       {/* Table */}
@@ -139,32 +162,13 @@ export default function Packages() {
             <thead className="bg-[#1e293b] text-white sticky top-0 z-10">
               <tr>
                 <th className="px-3 py-2.5 w-10 text-slate-400 font-medium text-center">ID</th>
-                <th className="px-3 py-2.5">
-                  <div className="font-semibold">Package Name</div>
-                  <div className="text-slate-400 text-[10px] font-normal">Active / Inactive / Total</div>
-                </th>
-                <th className="px-3 py-2.5">
-                  <div className="font-semibold">Profile Name</div>
-                  <div className="text-slate-400 text-[10px] font-normal">Mikrotik Profile</div>
-                </th>
-                <th className="px-3 py-2.5 text-center">
-                  <div className="font-semibold text-cyan-300">Company Price</div>
-                  <div className="text-slate-400 text-[10px] font-normal">Price</div>
-                </th>
-                <th className="px-3 py-2.5 text-center">
-                  <div className="font-semibold">Company Bandwidth</div>
-                  <div className="text-slate-400 text-[10px] font-normal">Speed</div>
-                </th>
-                <th className="px-3 py-2.5 text-center">
-                  <div className="font-semibold">Reseller Price</div>
-                  <div className="text-slate-400 text-[10px] font-normal">Price</div>
-                </th>
-                <th className="px-3 py-2.5 text-center">
-                  <div className="font-semibold">Reseller Area</div>
-                </th>
-                <th className="px-3 py-2.5 text-center">
-                  <div className="font-semibold">On Signup?</div>
-                </th>
+                <th className="px-3 py-2.5 font-semibold">Package Name</th>
+                <th className="px-3 py-2.5 font-semibold">MikroTik Profile</th>
+                <th className="px-3 py-2.5 text-center font-semibold text-cyan-300">Company Price</th>
+                <th className="px-3 py-2.5 text-center font-semibold">Bandwidth</th>
+                <th className="px-3 py-2.5 text-center font-semibold">Reseller Price</th>
+                <th className="px-3 py-2.5 text-center font-semibold">Reseller Area</th>
+                <th className="px-3 py-2.5 text-center font-semibold">On Signup?</th>
                 <th className="px-3 py-2.5 text-center font-semibold">Action</th>
               </tr>
             </thead>
@@ -202,12 +206,23 @@ export default function Packages() {
                       </div>
                     </td>
 
-                    {/* Profile Name */}
+                    {/* MikroTik Profile */}
                     <td className="px-3 py-2.5">
-                      <div className="text-[11px] text-slate-600 mb-0.5">{pkg.name}</div>
-                      <Badge className="bg-slate-100 text-slate-500 text-[10px] py-0 px-1.5 font-normal border border-slate-200 rounded-sm hover:bg-slate-100">
-                        [OK]
-                      </Badge>
+                      {pkg.mikrotikProfile ? (
+                        <div>
+                          <div className="text-[11px] text-sky-700 font-semibold">{pkg.mikrotikProfile}</div>
+                          <Badge className="bg-emerald-50 text-emerald-600 text-[10px] py-0 px-1.5 font-normal border border-emerald-200 rounded-sm hover:bg-emerald-50 mt-0.5">
+                            Linked
+                          </Badge>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="text-[11px] text-slate-400 italic">Not set</div>
+                          <Badge className="bg-slate-100 text-slate-400 text-[10px] py-0 px-1.5 font-normal border border-slate-200 rounded-sm hover:bg-slate-100">
+                            —
+                          </Badge>
+                        </div>
+                      )}
                     </td>
 
                     {/* Company Price */}
@@ -260,7 +275,7 @@ export default function Packages() {
         </div>
       </Card>
 
-      {/* Add Package Modal — table-style like reference */}
+      {/* Add Package Modal */}
       {isAddOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
           <div className="bg-white rounded-sm shadow-xl w-full max-w-2xl mx-4 overflow-hidden">
@@ -281,7 +296,22 @@ export default function Packages() {
                   <thead className="bg-[#1e293b] text-white">
                     <tr>
                       <th className="px-4 py-2.5 text-center text-slate-400 font-medium w-10">S/E</th>
-                      <th className="px-4 py-2.5 text-center font-semibold">MIKROTIK PROFILE</th>
+                      <th className="px-4 py-2.5 text-center font-semibold">
+                        <div className="flex items-center justify-center gap-1">
+                          MIKROTIK PROFILE
+                          {profilesLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                          {!profilesLoading && (
+                            <button
+                              type="button"
+                              onClick={fetchProfiles}
+                              className="ml-1 text-slate-400 hover:text-white"
+                              title="Refresh profiles"
+                            >
+                              <RefreshCw className="w-2.5 h-2.5" />
+                            </button>
+                          )}
+                        </div>
+                      </th>
                       <th className="px-4 py-2.5 font-semibold">PACKAGE NAME</th>
                       <th className="px-4 py-2.5 text-center font-semibold">BANDWIDTH</th>
                       <th className="px-4 py-2.5 text-center font-semibold">PRICE</th>
@@ -292,9 +322,29 @@ export default function Packages() {
                     <tr className="border-b border-slate-100 bg-white">
                       <td className="px-4 py-2.5 text-center text-slate-500 font-medium">1</td>
                       <td className="px-4 py-2.5">
-                        <select className="w-full h-8 border border-slate-200 rounded text-xs text-slate-500 bg-white px-2 focus:outline-none focus:ring-1 focus:ring-sky-400">
-                          <option value="">Choose Package Profile</option>
+                        <select
+                          className="w-full h-8 border border-slate-200 rounded text-xs text-slate-700 bg-white px-2 focus:outline-none focus:ring-1 focus:ring-sky-400"
+                          {...form.register("mikrotikProfile")}
+                        >
+                          <option value="">
+                            {profilesLoading
+                              ? "Loading profiles..."
+                              : profiles.length === 0
+                              ? "No profiles found (connect MikroTik)"
+                              : "Choose Profile"}
+                          </option>
+                          {profiles.map((p) => (
+                            <option key={p.name} value={p.name}>
+                              {p.name}
+                              {p.rateLimit ? ` (${p.rateLimit})` : ""}
+                            </option>
+                          ))}
                         </select>
+                        {profiles.length > 0 && (
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            {profiles.length} profile{profiles.length !== 1 ? "s" : ""} from MikroTik
+                          </p>
+                        )}
                       </td>
                       <td className="px-4 py-2.5">
                         <Input
@@ -335,7 +385,7 @@ export default function Packages() {
                         <td className="px-4 py-2 text-center text-slate-400">{i + 2}</td>
                         <td className="px-4 py-2">
                           <select className="w-full h-7 border border-slate-200 rounded text-xs text-slate-400 bg-white px-2 focus:outline-none" disabled>
-                            <option>Choose Package Profile</option>
+                            <option>Choose Profile</option>
                           </select>
                         </td>
                         <td className="px-4 py-2">

@@ -11,4 +11,5 @@ export interface PackageInput {
   price: string;
   speed?: string;
   description?: string;
+  mikrotikProfile?: string;
 }

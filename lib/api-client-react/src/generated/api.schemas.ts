@@ -254,6 +254,8 @@ export interface Package {
   speed?: string | null;
   /** @nullable */
   description?: string | null;
+  /** @nullable */
+  mikrotikProfile?: string | null;
   createdAt: string;
   activeClients: number;
   inactiveClients: number;
@@ -265,6 +267,7 @@ export interface PackageInput {
   price: string;
   speed?: string;
   description?: string;
+  mikrotikProfile?: string;
 }
 
 export interface Client {

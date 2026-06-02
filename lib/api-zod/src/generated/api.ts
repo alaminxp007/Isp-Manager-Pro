@@ -735,6 +735,7 @@ export const ListPackagesResponseItem = zod.object({
   "price": zod.string(),
   "speed": zod.string().nullish(),
   "description": zod.string().nullish(),
+  "mikrotikProfile": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "activeClients": zod.number(),
   "inactiveClients": zod.number(),
@@ -750,7 +751,8 @@ export const CreatePackageBody = zod.object({
   "name": zod.string(),
   "price": zod.string(),
   "speed": zod.string().optional(),
-  "description": zod.string().optional()
+  "description": zod.string().optional(),
+  "mikrotikProfile": zod.string().optional()
 })
 
 

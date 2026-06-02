@@ -162,6 +162,7 @@ router.get("/packages", requireAuth, async (_req, res): Promise<void> => {
       price: packagesTable.price,
       speed: packagesTable.speed,
       description: packagesTable.description,
+      mikrotikProfile: packagesTable.mikrotikProfile,
       createdAt: packagesTable.createdAt,
       activeClients: sql<number>`count(case when ${clientsTable.status} = 'Active' then 1 end)::int`,
       inactiveClients: sql<number>`count(case when ${clientsTable.status} = 'Inactive' then 1 end)::int`,
@@ -177,6 +178,7 @@ router.get("/packages", requireAuth, async (_req, res): Promise<void> => {
     price: p.price ?? "0",
     speed: p.speed ?? null,
     description: p.description ?? null,
+    mikrotikProfile: p.mikrotikProfile ?? null,
     createdAt: p.createdAt.toISOString(),
     activeClients: p.activeClients ?? 0,
     inactiveClients: p.inactiveClients ?? 0,
@@ -185,14 +187,18 @@ router.get("/packages", requireAuth, async (_req, res): Promise<void> => {
 });
 
 router.post("/packages", requireAuth, async (req, res): Promise<void> => {
-  const { name, price, speed, description } = req.body;
+  const { name, price, speed, description, mikrotikProfile } = req.body;
   if (!name) { res.status(400).json({ error: "name is required" }); return; }
-  const [pkg] = await db.insert(packagesTable).values({ name, price, speed, description }).returning();
+  const [pkg] = await db.insert(packagesTable).values({
+    name, price, speed, description,
+    mikrotikProfile: mikrotikProfile ?? null,
+  }).returning();
   res.status(201).json({
     ...pkg,
     price: pkg.price ?? "0",
     speed: pkg.speed ?? null,
     description: pkg.description ?? null,
+    mikrotikProfile: pkg.mikrotikProfile ?? null,
     createdAt: pkg.createdAt.toISOString(),
   });
 });

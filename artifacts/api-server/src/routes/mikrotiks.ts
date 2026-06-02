@@ -150,6 +150,43 @@ router.delete("/mikrotiks/:id", requireAuth, async (req, res): Promise<void> => 
   res.sendStatus(204);
 });
 
+router.get("/mikrotiks/profiles", requireAuth, async (_req, res): Promise<void> => {
+  const connectedMks = await db
+    .select()
+    .from(mikrotiksTable)
+    .where(eq(mikrotiksTable.status, "connected"));
+
+  if (connectedMks.length === 0) {
+    res.json({ profiles: [] });
+    return;
+  }
+
+  const allProfiles: Array<{ name: string; rateLimit: string | null; mikrotikName: string }> = [];
+
+  await Promise.all(connectedMks.map(async (mk) => {
+    try {
+      const profiles = await mkFetch(mk, "/ppp/profile") as Array<Record<string, string>>;
+      (Array.isArray(profiles) ? profiles : []).forEach((p) => {
+        if (p["name"] && p["name"] !== "*0") {
+          allProfiles.push({
+            name: p["name"],
+            rateLimit: p["rate-limit"] ?? null,
+            mikrotikName: mk.name,
+          });
+        }
+      });
+    } catch {
+      // skip unavailable MikroTik
+    }
+  }));
+
+  const unique = Array.from(
+    new Map(allProfiles.map((p) => [p.name, p])).values()
+  ).sort((a, b) => a.name.localeCompare(b.name));
+
+  res.json({ profiles: unique });
+});
+
 router.post("/mikrotiks/:id/test", requireAuth, async (req, res): Promise<void> => {
   const id = parseInt(req.params["id"] ?? "", 10);
   if (isNaN(id)) { res.status(400).json({ error: "invalid id" }); return; }

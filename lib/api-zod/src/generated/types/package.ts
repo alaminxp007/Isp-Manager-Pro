@@ -14,6 +14,8 @@ export interface Package {
   speed?: string | null;
   /** @nullable */
   description?: string | null;
+  /** @nullable */
+  mikrotikProfile?: string | null;
   createdAt: Date;
   activeClients: number;
   inactiveClients: number;

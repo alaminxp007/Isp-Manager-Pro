@@ -1734,6 +1734,8 @@ components:
           type: ["string", "null"]
         description:
           type: ["string", "null"]
+        mikrotikProfile:
+          type: ["string", "null"]
         createdAt:
           type: string
           format: date-time
@@ -1755,6 +1757,8 @@ components:
         speed:
           type: string
         description:
+          type: string
+        mikrotikProfile:
           type: string
 
     Client:
