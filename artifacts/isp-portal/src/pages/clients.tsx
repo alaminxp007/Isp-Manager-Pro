@@ -16,7 +16,7 @@ import * as z from "zod";
 import { 
   Search, Users, ChevronDown, Maximize2, Settings, Shuffle, Trash2,
   Edit, Trash, Plus, User, MessageSquare, RefreshCw, Banknote, CreditCard,
-  BarChart2
+  BarChart2, Download, Loader2, CheckSquare, Square, Wifi
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
@@ -70,6 +70,14 @@ export default function Clients() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAdvanceOpen, setIsAdvanceOpen] = useState(false);
   const [showGraph, setShowGraph] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importMkId, setImportMkId] = useState<number | null>(null);
+  const [importMkList, setImportMkList] = useState<{ id: number; name: string; status: string }[]>([]);
+  const [importPreview, setImportPreview] = useState<Array<{ username: string; profile: string; fullName: string; disabled: boolean; remoteAddress: string; packageId: number | null; packageName: string | null }>>([]);
+  const [importSelected, setImportSelected] = useState<Set<string>>(new Set());
+  const [importLoading, setImportLoading] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const token = localStorage.getItem("isp_token") ?? "";
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -132,6 +140,71 @@ export default function Clients() {
   const generateComId = () => {
     return Math.floor(1000 + Math.random() * 9000).toString();
   };
+
+  async function openImportModal() {
+    setIsImportOpen(true);
+    setImportPreview([]);
+    setImportSelected(new Set());
+    try {
+      const res = await fetch("/api/mikrotiks", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json() as { mikrotiks: { id: number; name: string; status: string }[] };
+      const connected = (data.mikrotiks ?? []).filter((m) => m.status === "connected");
+      setImportMkList(connected);
+      if (connected.length > 0 && connected[0]) {
+        setImportMkId(connected[0].id);
+        await fetchImportPreview(connected[0].id);
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to fetch MikroTik list", variant: "destructive" });
+    }
+  }
+
+  async function fetchImportPreview(mkId: number) {
+    setImportLoading(true);
+    setImportPreview([]);
+    setImportSelected(new Set());
+    try {
+      const res = await fetch(`/api/mikrotiks/${mkId}/import-clients`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json() as { error?: string };
+        throw new Error(err.error ?? "Failed to fetch");
+      }
+      const data = await res.json() as { importable: typeof importPreview };
+      setImportPreview(data.importable ?? []);
+      const allUsernames = new Set((data.importable ?? []).map((c) => c.username));
+      setImportSelected(allUsernames);
+    } catch (err) {
+      toast({ title: "Preview Error", description: err instanceof Error ? err.message : "Failed", variant: "destructive" });
+    } finally {
+      setImportLoading(false);
+    }
+  }
+
+  async function handleImport() {
+    if (!importMkId || importSelected.size === 0) return;
+    setImporting(true);
+    try {
+      const res = await fetch(`/api/mikrotiks/${importMkId}/import-clients`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ usernames: Array.from(importSelected) }),
+      });
+      if (!res.ok) {
+        const err = await res.json() as { error?: string };
+        throw new Error(err.error ?? "Import failed");
+      }
+      const data = await res.json() as { imported: number; skipped: number };
+      queryClient.invalidateQueries({ queryKey: getListClientsQueryKey() });
+      toast({ title: `✅ Import Complete`, description: `${data.imported} clients imported, ${data.skipped} skipped (already exist)` });
+      setIsImportOpen(false);
+    } catch (err) {
+      toast({ title: "Import Failed", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
+    } finally {
+      setImporting(false);
+    }
+  }
 
   const onAddClientSelect = (type: string) => {
     if (type === "PPPoE") {
@@ -233,6 +306,17 @@ export default function Clients() {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+
+          {/* Import from MikroTik */}
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-white border-sky-300 text-sky-700 hover:bg-sky-50 h-8 px-3 font-medium shadow-sm gap-1.5"
+            onClick={openImportModal}
+          >
+            <Download className="w-3.5 h-3.5" />
+            Import MikroTik
+          </Button>
 
           {/* Graph Report Toggle */}
           <Button
@@ -889,6 +973,161 @@ export default function Clients() {
         </DialogContent>
       </Dialog>
       
+      {/* ── Import from MikroTik Modal ── */}
+      <Dialog open={isImportOpen} onOpenChange={(o) => { if (!importing) setIsImportOpen(o); }}>
+        <DialogContent className="bg-white border-slate-200 text-slate-800 max-w-2xl w-full p-0">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-slate-100">
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold text-slate-900">
+              <Wifi className="w-4 h-4 text-sky-600" />
+              Import Clients from MikroTik
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="px-5 py-3 space-y-3">
+            {/* MikroTik selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-slate-600 w-20 shrink-0">MikroTik</span>
+              <Select
+                value={importMkId?.toString() ?? ""}
+                onValueChange={(v) => {
+                  const id = parseInt(v, 10);
+                  setImportMkId(id);
+                  fetchImportPreview(id);
+                }}
+                disabled={importMkList.length === 0}
+              >
+                <SelectTrigger className="h-8 bg-white border-slate-200 text-xs flex-1">
+                  <SelectValue placeholder={importMkList.length === 0 ? "No connected MikroTiks" : "Select MikroTik"} />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-slate-200">
+                  {importMkList.map((mk) => (
+                    <SelectItem key={mk.id} value={mk.id.toString()} className="text-xs">
+                      {mk.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 px-3 border-slate-200 text-slate-700 hover:bg-slate-50 text-xs"
+                disabled={!importMkId || importLoading}
+                onClick={() => importMkId && fetchImportPreview(importMkId)}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${importLoading ? "animate-spin" : ""}`} />
+              </Button>
+            </div>
+
+            {/* Stats bar */}
+            {!importLoading && importPreview.length > 0 && (
+              <div className="flex items-center gap-3 text-xs bg-sky-50 border border-sky-200 rounded-md px-3 py-2">
+                <span className="text-sky-700 font-medium">{importPreview.length} importable PPP secrets found</span>
+                <span className="text-slate-400">|</span>
+                <span className="text-slate-600">{importSelected.size} selected</span>
+                <div className="ml-auto flex gap-2">
+                  <button
+                    className="text-sky-600 hover:text-sky-800 font-medium"
+                    onClick={() => setImportSelected(new Set(importPreview.map((c) => c.username)))}
+                  >Select All</button>
+                  <span className="text-slate-300">|</span>
+                  <button
+                    className="text-slate-500 hover:text-slate-700"
+                    onClick={() => setImportSelected(new Set())}
+                  >Deselect All</button>
+                </div>
+              </div>
+            )}
+
+            {/* Loading state */}
+            {importLoading && (
+              <div className="flex items-center justify-center py-10 text-slate-500 gap-2 text-sm">
+                <Loader2 className="w-4 h-4 animate-spin text-sky-500" />
+                Fetching PPP secrets...
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!importLoading && importMkId && importPreview.length === 0 && (
+              <div className="flex items-center justify-center py-8 text-slate-400 text-sm">
+                All PPP secrets already exist as clients, or no secrets found.
+              </div>
+            )}
+
+            {/* No MikroTik connected */}
+            {!importLoading && importMkList.length === 0 && (
+              <div className="flex items-center justify-center py-8 text-slate-400 text-sm">
+                No connected MikroTik found. Please connect one from the Network page.
+              </div>
+            )}
+
+            {/* Secret list */}
+            {!importLoading && importPreview.length > 0 && (
+              <div className="border border-slate-200 rounded-md overflow-hidden">
+                <div className="grid grid-cols-[24px_1fr_1fr_120px_80px] gap-0 text-[10px] font-semibold uppercase tracking-wide text-slate-400 bg-slate-50 px-3 py-2 border-b border-slate-200">
+                  <span />
+                  <span>Username</span>
+                  <span>Full Name</span>
+                  <span>Package</span>
+                  <span>Status</span>
+                </div>
+                <div className="max-h-72 overflow-y-auto custom-scrollbar divide-y divide-slate-100">
+                  {importPreview.map((item) => {
+                    const checked = importSelected.has(item.username);
+                    return (
+                      <div
+                        key={item.username}
+                        className={`grid grid-cols-[24px_1fr_1fr_120px_80px] gap-0 items-center px-3 py-2 cursor-pointer transition-colors ${checked ? "bg-sky-50/50" : "hover:bg-slate-50"}`}
+                        onClick={() => {
+                          const next = new Set(importSelected);
+                          if (checked) next.delete(item.username);
+                          else next.add(item.username);
+                          setImportSelected(next);
+                        }}
+                      >
+                        <span className="text-slate-400">
+                          {checked ? <CheckSquare className="w-3.5 h-3.5 text-sky-600" /> : <Square className="w-3.5 h-3.5" />}
+                        </span>
+                        <span className="text-xs font-mono text-slate-800 truncate pr-2">{item.username}</span>
+                        <span className="text-xs text-slate-600 truncate pr-2">{item.fullName || "—"}</span>
+                        <span className="text-xs truncate pr-2">
+                          {item.packageName
+                            ? <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">{item.packageName}</span>
+                            : <span className="text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">{item.profile || "—"}</span>}
+                        </span>
+                        <span className={`text-xs font-medium ${item.disabled ? "text-red-500" : "text-emerald-600"}`}>
+                          {item.disabled ? "Inactive" : "Active"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 px-5 py-4 border-t border-slate-100">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsImportOpen(false)}
+              disabled={importing}
+              className="h-8 px-5 border-slate-200 text-slate-700 hover:bg-slate-50"
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className="h-8 px-5 bg-sky-600 hover:bg-sky-700 text-white font-medium gap-1.5"
+              disabled={importSelected.size === 0 || importing || importLoading}
+              onClick={handleImport}
+            >
+              {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+              {importing ? "Importing..." : `Import ${importSelected.size} Clients`}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <style dangerouslySetInnerHTML={{__html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, mikrotiksTable, clientsTable } from "@workspace/db";
+import { db, mikrotiksTable, clientsTable, packagesTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth } from "../lib/auth";
 
@@ -336,6 +336,94 @@ router.post("/mikrotiks/:id/sync", requireAuth, async (req, res): Promise<void> 
   } catch (err) {
     res.status(503).json({ error: `Sync failed: ${err instanceof Error ? err.message : String(err)}` });
   }
+});
+
+router.get("/mikrotiks/:id/import-clients", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(req.params["id"] ?? "", 10);
+  if (isNaN(id)) { res.status(400).json({ error: "invalid id" }); return; }
+
+  const [mk] = await db.select().from(mikrotiksTable).where(eq(mikrotiksTable.id, id));
+  if (!mk) { res.status(404).json({ error: "not found" }); return; }
+  if (mk.status !== "connected") { res.status(400).json({ error: "MikroTik is not connected" }); return; }
+
+  const secrets = await mkFetch(mk, "/ppp/secret") as Array<Record<string, string>>;
+  const secretList = Array.isArray(secrets) ? secrets : [];
+
+  const existingClients = await db.select({ username: clientsTable.username }).from(clientsTable);
+  const existingUsernames = new Set(existingClients.map((c) => c.username));
+
+  const packages = await db.select({ id: packagesTable.id, name: packagesTable.name, mikrotikProfile: packagesTable.mikrotikProfile }).from(packagesTable);
+  const profileToPackage = new Map(packages.filter((p) => p.mikrotikProfile).map((p) => [p.mikrotikProfile!, p]));
+
+  const importable = secretList
+    .filter((s) => s["name"] && !existingUsernames.has(s["name"]))
+    .map((s) => {
+      const profile = s["profile"] ?? "";
+      const pkg = profileToPackage.get(profile) ?? null;
+      return {
+        username: s["name"],
+        profile,
+        fullName: s["comment"] || s["name"],
+        disabled: s["disabled"] === "true",
+        remoteAddress: s["remote-address"] ?? "",
+        packageId: pkg?.id ?? null,
+        packageName: pkg?.name ?? null,
+      };
+    });
+
+  res.json({ importable, total: importable.length, existing: existingUsernames.size });
+});
+
+router.post("/mikrotiks/:id/import-clients", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(req.params["id"] ?? "", 10);
+  if (isNaN(id)) { res.status(400).json({ error: "invalid id" }); return; }
+
+  const [mk] = await db.select().from(mikrotiksTable).where(eq(mikrotiksTable.id, id));
+  if (!mk) { res.status(404).json({ error: "not found" }); return; }
+
+  const body = req.body as { usernames?: string[] };
+  const usernames = body.usernames ?? [];
+  if (!Array.isArray(usernames) || usernames.length === 0) {
+    res.status(400).json({ error: "usernames array is required" }); return;
+  }
+
+  const secrets = await mkFetch(mk, "/ppp/secret") as Array<Record<string, string>>;
+  const secretList = Array.isArray(secrets) ? secrets : [];
+
+  const packages = await db.select({ id: packagesTable.id, name: packagesTable.name, mikrotikProfile: packagesTable.mikrotikProfile }).from(packagesTable);
+  const profileToPackage = new Map(packages.filter((p) => p.mikrotikProfile).map((p) => [p.mikrotikProfile!, p]));
+
+  const toImport = secretList.filter((s) => usernames.includes(s["name"] ?? ""));
+
+  let imported = 0;
+  let skipped = 0;
+
+  for (const s of toImport) {
+    const username = s["name"] ?? "";
+    if (!username) continue;
+
+    const existing = await db.select({ id: clientsTable.id }).from(clientsTable).where(eq(clientsTable.username, username)).limit(1);
+    if (existing.length > 0) { skipped++; continue; }
+
+    const profile = s["profile"] ?? "";
+    const pkg = profileToPackage.get(profile) ?? null;
+    const status = s["disabled"] === "true" ? "Inactive" : "Active";
+    const comId = `MK-${Date.now()}-${imported}`;
+
+    await db.insert(clientsTable).values({
+      comId,
+      username,
+      fullName: s["comment"]?.trim() || username,
+      status,
+      isOnline: false,
+      packageId: pkg?.id ?? null,
+      ipAddress: s["remote-address"] || null,
+      note: `Imported from MikroTik: ${mk.name}`,
+    });
+    imported++;
+  }
+
+  res.json({ success: true, imported, skipped, total: toImport.length });
 });
 
 router.post("/mikrotiks/:id/disconnect", requireAuth, async (req, res): Promise<void> => {
