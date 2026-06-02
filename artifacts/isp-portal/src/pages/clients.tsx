@@ -365,42 +365,15 @@ export default function Clients() {
             <thead className="bg-[#1e293b] text-white sticky top-0 z-10">
               <tr>
                 <th className="px-3 py-2.5 w-8 text-slate-400 font-medium text-center">#</th>
-                <th className="px-3 py-2.5">
-                  <div className="font-semibold">ComID</div>
-                  <div className="text-slate-400 text-[10px] font-normal">Com | Client ID</div>
-                </th>
-                <th className="px-3 py-2.5">
-                  <div className="font-semibold">Client Name</div>
-                  <div className="text-slate-400 text-[10px] font-normal">PPPoE ID</div>
-                </th>
-                <th className="px-3 py-2.5">
-                  <div className="font-semibold">Phone No</div>
-                  <div className="text-slate-400 text-[10px] font-normal">Phone No</div>
-                </th>
-                <th className="px-3 py-2.5">
-                  <div className="font-semibold">Zone/Address</div>
-                  <div className="text-slate-400 text-[10px] font-normal">Zone/Address</div>
-                </th>
-                <th className="px-3 py-2.5">
-                  <div className="font-semibold">Package</div>
-                  <div className="text-slate-400 text-[10px] font-normal">Package</div>
-                </th>
-                <th className="px-3 py-2.5 text-center">
-                  <div className="font-semibold">PD</div>
-                  <div className="text-slate-400 text-[10px] font-normal">SD</div>
-                </th>
-                <th className="px-3 py-2.5">
-                  <div className="font-semibold">Online Info</div>
-                  <div className="text-slate-400 text-[10px] font-normal">IP Address</div>
-                </th>
-                <th className="px-3 py-2.5 text-right">
-                  <div className="font-semibold text-red-400">Due</div>
-                  <div className="text-slate-400 text-[10px] font-normal">Balance</div>
-                </th>
-                <th className="px-3 py-2.5 text-center">
-                  <div className="font-semibold">Status</div>
-                  <div className="text-slate-400 text-[10px] font-normal">Online</div>
-                </th>
+                <th className="px-3 py-2.5 font-semibold">ComID</th>
+                <th className="px-3 py-2.5 font-semibold">Client Name</th>
+                <th className="px-3 py-2.5 font-semibold">Phone No</th>
+                <th className="px-3 py-2.5 font-semibold">Zone/Address</th>
+                <th className="px-3 py-2.5 font-semibold">Package</th>
+                <th className="px-3 py-2.5 text-center font-semibold">PD</th>
+                <th className="px-3 py-2.5 font-semibold">Online Info</th>
+                <th className="px-3 py-2.5 text-right font-semibold text-red-400">Due</th>
+                <th className="px-3 py-2.5 text-center font-semibold">Status</th>
                 <th className="px-3 py-2.5 text-center font-semibold">Action</th>
               </tr>
             </thead>
