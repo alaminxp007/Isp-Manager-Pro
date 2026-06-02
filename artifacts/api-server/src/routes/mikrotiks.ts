@@ -187,6 +187,28 @@ router.get("/mikrotiks/profiles", requireAuth, async (_req, res): Promise<void> 
   res.json({ profiles: unique });
 });
 
+router.get("/mikrotiks/:id/ppp-secrets", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(req.params["id"] ?? "", 10);
+  if (isNaN(id)) { res.status(400).json({ error: "invalid id" }); return; }
+
+  const [mk] = await db.select().from(mikrotiksTable).where(eq(mikrotiksTable.id, id));
+  if (!mk) { res.status(404).json({ error: "not found" }); return; }
+  if (mk.status !== "connected") { res.status(400).json({ error: "MikroTik is not connected" }); return; }
+
+  const secrets = await mkFetch(mk, "/ppp/secret") as Array<Record<string, string>>;
+  const list = (Array.isArray(secrets) ? secrets : []).map((s) => ({
+    id: s[".id"] ?? "",
+    name: s["name"] ?? "",
+    service: s["service"] ?? "pppoe",
+    profile: s["profile"] ?? "",
+    remoteAddress: s["remote-address"] ?? "",
+    comment: s["comment"] ?? "",
+    disabled: s["disabled"] === "true",
+  }));
+
+  res.json({ secrets: list, total: list.length });
+});
+
 router.post("/mikrotiks/:id/test", requireAuth, async (req, res): Promise<void> => {
   const id = parseInt(req.params["id"] ?? "", 10);
   if (isNaN(id)) { res.status(400).json({ error: "invalid id" }); return; }

@@ -10,7 +10,7 @@ import {
 import {
   Wifi, Plus, Pencil, Trash2, Eye, EyeOff,
   RefreshCw, Settings, Users, Search, X,
-  CheckCircle2, ArrowUpFromLine, Loader2,
+  CheckCircle2, ArrowUpFromLine, Loader2, Lock,
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -262,6 +262,289 @@ function ActiveConnectionsModal({
   );
 }
 
+type PppSecret = {
+  id: string; name: string; service: string; profile: string;
+  remoteAddress: string; comment: string; disabled: boolean;
+};
+
+function PppSecretsModal({
+  mk, open, onClose, token,
+}: { mk: MkRow | null; open: boolean; onClose: () => void; token: string }) {
+  const { toast } = useToast();
+  const [secrets, setSecrets] = useState<PppSecret[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [loaded, setLoaded] = useState(false);
+
+  async function load() {
+    if (!mk) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/mikrotiks/${mk.id}/ppp-secrets`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Request failed" })) as { error?: string };
+        throw new Error(err.error ?? "Failed to fetch");
+      }
+      const data = await res.json() as { secrets: PppSecret[] };
+      setSecrets(data.secrets ?? []);
+      setLoaded(true);
+    } catch (err) {
+      toast({
+        title: "Fetch Error",
+        description: err instanceof Error ? err.message : "Failed to fetch PPP secrets",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleOpen(o: boolean) {
+    if (o && !loaded) load();
+    if (!o) { onClose(); setLoaded(false); setSearch(""); setSecrets([]); }
+  }
+
+  const filtered = secrets.filter((s) =>
+    !search ||
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    s.profile.toLowerCase().includes(search.toLowerCase()) ||
+    s.comment.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpen}>
+      <DialogContent className="bg-white max-w-4xl p-0 max-h-[90vh] flex flex-col">
+        <div className="bg-slate-700 px-5 py-3 rounded-t-lg flex items-center justify-between">
+          <DialogTitle className="text-sm font-semibold text-white flex items-center gap-2">
+            <Lock className="w-4 h-4" />
+            PPP Secrets — {mk?.name}
+          </DialogTitle>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setLoaded(false); load(); }}
+              className="text-slate-300 hover:text-white p-1 rounded hover:bg-slate-600 transition-colors"
+              title="Refresh"
+              disabled={loading}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            </button>
+            <button onClick={onClose} className="text-slate-400 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+          <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+            Total: <span className="text-sky-600">{loaded ? secrets.length : "—"}</span>
+            {secrets.length !== filtered.length && <span className="text-slate-400"> (filtered: {filtered.length})</span>}
+          </span>
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search username / profile..."
+              className="h-7 pl-8 text-xs w-52 border-slate-200"
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-auto">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0">
+              <tr className="bg-slate-700 text-white">
+                <th className="px-3 py-2.5 text-left font-medium w-8">#</th>
+                <th className="px-3 py-2.5 text-left font-medium">Username</th>
+                <th className="px-3 py-2.5 text-left font-medium">Service</th>
+                <th className="px-3 py-2.5 text-left font-medium">Profile</th>
+                <th className="px-3 py-2.5 text-left font-medium">Remote IP</th>
+                <th className="px-3 py-2.5 text-left font-medium">Comment</th>
+                <th className="px-3 py-2.5 text-center font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i} className="border-b border-slate-100">
+                    {Array.from({ length: 7 }).map((_, j) => (
+                      <td key={j} className="px-3 py-2.5"><Skeleton className="h-3.5 w-full rounded" /></td>
+                    ))}
+                  </tr>
+                ))
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
+                    <Lock className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm font-medium">
+                      {loaded ? "No PPP secrets found" : "Loading..."}
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((s, i) => (
+                  <tr key={s.id} className={`border-b border-slate-100 ${i % 2 === 0 ? "bg-white" : "bg-slate-50/50"}`}>
+                    <td className="px-3 py-2 text-slate-400">{i + 1}</td>
+                    <td className="px-3 py-2 font-semibold text-slate-800">{s.name}</td>
+                    <td className="px-3 py-2">
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-100 text-sky-700 uppercase">
+                        {s.service || "pppoe"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-slate-600">{s.profile || "—"}</td>
+                    <td className="px-3 py-2 font-mono text-slate-500 text-[10px]">{s.remoteAddress || "—"}</td>
+                    <td className="px-3 py-2 text-slate-400 italic text-[10px]">{s.comment || "—"}</td>
+                    <td className="px-3 py-2 text-center">
+                      {s.disabled ? (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-600">
+                          Disabled
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-600">
+                          Active
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-between">
+          <span className="text-[10px] text-slate-400">
+            {loaded
+              ? `${secrets.length} secret${secrets.length !== 1 ? "s" : ""} on ${mk?.name}`
+              : "Fetching from MikroTik…"}
+          </span>
+          <Button size="sm" variant="outline" onClick={onClose} className="h-7 text-xs">
+            Close
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type QuickSettings = { autoMkSync: boolean; autoSync: boolean; activeGraph: boolean; webPort: string };
+
+function QuickSettingsModal({
+  mk, open, onClose, token, onSaved,
+}: { mk: MkRow | null; open: boolean; onClose: () => void; token: string; onSaved: () => void }) {
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [settings, setSettings] = useState<QuickSettings>({
+    autoMkSync: false, autoSync: false, activeGraph: false, webPort: "",
+  });
+
+  function handleOpen(o: boolean) {
+    if (o && mk) {
+      setSettings({
+        autoMkSync: mk.autoMkSync,
+        autoSync: mk.autoSync,
+        activeGraph: mk.activeGraph,
+        webPort: mk.webPort ? String(mk.webPort) : "",
+      });
+    }
+    if (!o) onClose();
+  }
+
+  async function handleSave() {
+    if (!mk) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/mikrotiks/${mk.id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: mk.name, publicIp: mk.publicIp, login: mk.login, password: mk.password,
+          autoMkSync: settings.autoMkSync,
+          autoSync: settings.autoSync,
+          activeGraph: settings.activeGraph,
+          webPort: settings.webPort ? parseInt(settings.webPort) : undefined,
+          note: mk.note ?? undefined,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      toast({ title: "Settings saved", description: `${mk.name} settings updated` });
+      onSaved();
+      onClose();
+    } catch {
+      toast({ title: "Error", description: "Failed to save settings", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpen}>
+      <DialogContent className="bg-white max-w-sm p-0">
+        <div className="bg-slate-700 px-5 py-3 rounded-t-lg flex items-center justify-between">
+          <DialogTitle className="text-sm font-semibold text-white flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Quick Settings — {mk?.name}
+          </DialogTitle>
+          <button onClick={onClose} className="text-slate-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-4">
+          {([
+            { label: "Auto MK Sync", field: "autoMkSync" as const, desc: "Sync PPP secrets automatically" },
+            { label: "Auto Sync", field: "autoSync" as const, desc: "Auto sync client status" },
+            { label: "Active Graph", field: "activeGraph" as const, desc: "Enable bandwidth graph" },
+          ] as const).map(({ label, field, desc }) => (
+            <div key={field} className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-slate-700">{label}</p>
+                <p className="text-[10px] text-slate-400">{desc}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettings((s) => ({ ...s, [field]: !s[field] }))}
+                className={`relative w-10 h-5 rounded-full transition-colors ${settings[field] ? "bg-emerald-500" : "bg-slate-300"}`}
+              >
+                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${settings[field] ? "left-5" : "left-0.5"}`} />
+              </button>
+            </div>
+          ))}
+
+          <div className="pt-1 border-t border-slate-100">
+            <label className="text-xs font-semibold text-slate-700 block mb-1">Web Port</label>
+            <Input
+              value={settings.webPort}
+              onChange={(e) => setSettings((s) => ({ ...s, webPort: e.target.value }))}
+              placeholder="e.g. 8080"
+              className="h-8 text-xs border-slate-300"
+            />
+            {settings.activeGraph && !settings.webPort && (
+              <p className="text-[10px] text-red-500 mt-1">Web Port required when Active Graph is enabled</p>
+            )}
+          </div>
+        </div>
+
+        <div className="px-5 py-3 border-t border-slate-100 flex justify-end gap-2 bg-slate-50 rounded-b-lg">
+          <Button size="sm" variant="outline" onClick={onClose} className="h-8 text-xs border-slate-300">
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={saving}
+            className="h-8 text-xs bg-sky-600 hover:bg-sky-700 text-white"
+          >
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Network() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -274,6 +557,8 @@ export default function Network() {
   const [activeConnMk, setActiveConnMk] = useState<MkRow | null>(null);
   const [testingId, setTestingId] = useState<number | null>(null);
   const [syncingId, setSyncingId] = useState<number | null>(null);
+  const [pppSecretsMk, setPppSecretsMk] = useState<MkRow | null>(null);
+  const [settingsMk, setSettingsMk] = useState<MkRow | null>(null);
 
   const token = localStorage.getItem("isp_token") ?? "";
 
@@ -641,12 +926,13 @@ export default function Network() {
                           >
                             {isSyncing ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArrowUpFromLine className="w-3 h-3" />}
                           </button>
-                          {/* PPP Secrets placeholder */}
+                          {/* PPP Secrets */}
                           <button
-                            className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${isConnected ? "bg-sky-100 hover:bg-sky-200 text-sky-600" : "bg-slate-100 text-slate-300 cursor-not-allowed"}`}
-                            title="PPP Secrets (coming soon)"
+                            onClick={() => isConnected && setPppSecretsMk(m)}
+                            className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${isConnected ? "bg-sky-100 hover:bg-sky-200 text-sky-600 cursor-pointer" : "bg-slate-100 text-slate-300 cursor-not-allowed"}`}
+                            title={isConnected ? "PPP Secrets" : "Not connected"}
                           >
-                            <RefreshCw className="w-3 h-3" />
+                            <Lock className="w-3 h-3" />
                           </button>
                         </div>
                       </td>
@@ -673,8 +959,9 @@ export default function Network() {
                           </button>
                           {/* Settings */}
                           <button
+                            onClick={() => setSettingsMk(m)}
                             className="w-6 h-6 flex items-center justify-center rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
-                            title="Settings"
+                            title="Quick Settings"
                           >
                             <Settings className="w-3 h-3" />
                           </button>
@@ -885,6 +1172,23 @@ export default function Network() {
         open={activeConnMk !== null}
         onClose={() => setActiveConnMk(null)}
         token={token}
+      />
+
+      {/* PPP Secrets Modal */}
+      <PppSecretsModal
+        mk={pppSecretsMk}
+        open={pppSecretsMk !== null}
+        onClose={() => setPppSecretsMk(null)}
+        token={token}
+      />
+
+      {/* Quick Settings Modal */}
+      <QuickSettingsModal
+        mk={settingsMk}
+        open={settingsMk !== null}
+        onClose={() => setSettingsMk(null)}
+        token={token}
+        onSaved={() => queryClient.invalidateQueries({ queryKey: getListMikrotiksQueryKey() })}
       />
     </div>
   );
