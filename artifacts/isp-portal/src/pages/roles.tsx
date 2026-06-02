@@ -22,16 +22,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useToast } from "@/hooks/use-toast";
 
 const MODULES = [
-  { key: "dashboard", label: "Dashboard", actions: ["view"] },
-  { key: "clients", label: "Clients", actions: ["view", "create", "edit", "delete"] },
-  { key: "billing", label: "Billing", actions: ["view", "collect"] },
-  { key: "payments", label: "Online Payments", actions: ["view"] },
-  { key: "reports", label: "Reports", actions: ["view"] },
-  { key: "zones", label: "Zones", actions: ["view", "create", "edit", "delete"] },
-  { key: "packages", label: "Packages", actions: ["view", "create", "edit", "delete"] },
-  { key: "users", label: "Users", actions: ["view", "create", "edit", "delete"] },
-  { key: "roles", label: "Roles", actions: ["view", "create", "edit", "delete"] },
-  { key: "settings", label: "Settings", actions: ["view"] },
+  { key: "dashboard", label: "Dashboard",       actions: ["view"] },
+  { key: "clients",   label: "Clients",         actions: ["view", "create", "edit", "delete"] },
+  { key: "billing",   label: "Billing",         actions: ["view", "collect"] },
+  { key: "payments",  label: "Online Payments", actions: ["view"] },
+  { key: "reports",   label: "Reports",         actions: ["view"] },
+  { key: "zones",     label: "Zones",           actions: ["view", "create", "edit", "delete"] },
+  { key: "packages",  label: "Packages",        actions: ["view", "create", "edit", "delete"] },
+  { key: "users",     label: "Users",           actions: ["view", "create", "edit", "delete"] },
+  { key: "roles",     label: "Roles",           actions: ["view", "create", "edit", "delete"] },
+  { key: "network",   label: "Network",         actions: ["view", "edit"] },
+  { key: "settings",  label: "Settings",        actions: ["view", "edit"] },
 ];
 
 type RoleWithPerms = {

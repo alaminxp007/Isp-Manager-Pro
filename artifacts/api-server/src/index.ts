@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import cron from "node-cron";
 import { generateMonthlyBills, currentMonthKey } from "./lib/billGenerator";
+import { seedPermissions } from "./lib/seedPermissions";
 
 const rawPort = process.env["PORT"];
 
@@ -24,6 +25,9 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  // Seed permissions if not already present
+  seedPermissions().catch((err) => logger.error({ err }, "Failed to seed permissions"));
 
   // Run at 00:05 on the 1st of every month
   cron.schedule("5 0 1 * *", async () => {
