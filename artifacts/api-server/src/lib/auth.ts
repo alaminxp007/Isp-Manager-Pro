@@ -1,26 +1,54 @@
 import { Request, Response, NextFunction } from "express";
+import { createHmac, timingSafeEqual } from "crypto";
 import { db, usersTable, rolesTable, permissionsTable, rolePermissionsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logger } from "./logger";
 
-const TOKEN_PREFIX = "isp_";
+const JWT_SECRET = process.env["JWT_SECRET"] ?? "isp-manager-pro-secret-key-change-in-production";
+const TOKEN_EXPIRY_SECONDS = 30 * 24 * 60 * 60; // 30 days
+
+function b64url(input: string): string {
+  return Buffer.from(input).toString("base64url");
+}
+
+function fromB64url(input: string): string {
+  return Buffer.from(input, "base64url").toString("utf8");
+}
 
 export function generateToken(userId: number): string {
-  return `${TOKEN_PREFIX}${userId}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const payload = b64url(JSON.stringify({ userId, iat: Math.floor(Date.now() / 1000) }));
+  const sig = createHmac("sha256", JWT_SECRET).update(payload).digest("base64url");
+  return `${payload}.${sig}`;
 }
 
-const tokenStore = new Map<string, number>();
-
-export function storeToken(token: string, userId: number): void {
-  tokenStore.set(token, userId);
+export function storeToken(_token: string, _userId: number): void {
+  // no-op: tokens are stateless — no store needed
 }
 
-export function revokeToken(token: string): void {
-  tokenStore.delete(token);
+export function revokeToken(_token: string): void {
+  // no-op: logout clears token from client side only
 }
 
 export function getUserIdFromToken(token: string): number | null {
-  return tokenStore.get(token) ?? null;
+  try {
+    const dot = token.indexOf(".");
+    if (dot === -1) return null;
+    const payload = token.slice(0, dot);
+    const sig = token.slice(dot + 1);
+
+    const expected = createHmac("sha256", JWT_SECRET).update(payload).digest("base64url");
+    const sigBuf = Buffer.from(sig, "base64url");
+    const expBuf = Buffer.from(expected, "base64url");
+    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) return null;
+
+    const data = JSON.parse(fromB64url(payload)) as { userId: number; iat: number };
+    const now = Math.floor(Date.now() / 1000);
+    if (now - data.iat > TOKEN_EXPIRY_SECONDS) return null;
+
+    return data.userId;
+  } catch {
+    return null;
+  }
 }
 
 export async function getUserWithRole(userId: number) {

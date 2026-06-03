@@ -18,13 +18,21 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
   
-  const { data: user, isLoading: isUserLoading, refetch } = useGetCurrentUser({
+  const { data: user, isLoading: isUserLoading, refetch, error } = useGetCurrentUser({
     query: {
       queryKey: ["auth", "me"],
       enabled: !!localStorage.getItem("isp_token"),
       retry: false,
     }
   });
+
+  // Auto-logout when token is invalid or expired
+  useEffect(() => {
+    if (error && (error as { status?: number }).status === 401) {
+      localStorage.removeItem("isp_token");
+      setLocation("/login");
+    }
+  }, [error, setLocation]);
 
   const logoutMutation = useLogout({
     mutation: {
