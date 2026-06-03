@@ -146,20 +146,27 @@ router.delete("/mikrotiks/:id", requireAuth, async (req, res): Promise<void> => 
   res.sendStatus(204);
 });
 
-router.get("/mikrotiks/profiles", requireAuth, async (_req, res): Promise<void> => {
-  const connectedMks = await db
-    .select()
-    .from(mikrotiksTable)
-    .where(eq(mikrotiksTable.status, "connected"));
+router.get("/mikrotiks/profiles", requireAuth, async (req, res): Promise<void> => {
+  const mikrotikId = req.query["mikrotikId"] ? parseInt(String(req.query["mikrotikId"]), 10) : null;
 
-  if (connectedMks.length === 0) {
+  let mksToQuery: typeof mikrotiksTable.$inferSelect[] = [];
+
+  if (mikrotikId && !isNaN(mikrotikId)) {
+    const [mk] = await db.select().from(mikrotiksTable).where(eq(mikrotiksTable.id, mikrotikId));
+    if (!mk) { res.status(404).json({ error: "MikroTik not found" }); return; }
+    mksToQuery = [mk];
+  } else {
+    mksToQuery = await db.select().from(mikrotiksTable).where(eq(mikrotiksTable.status, "connected"));
+  }
+
+  if (mksToQuery.length === 0) {
     res.json({ profiles: [] });
     return;
   }
 
   const allProfiles: Array<{ name: string; rateLimit: string | null; mikrotikName: string }> = [];
 
-  await Promise.all(connectedMks.map(async (mk) => {
+  await Promise.all(mksToQuery.map(async (mk) => {
     try {
       const profiles = await mkQuery(mk, "/ppp/profile/print");
       profiles.forEach((p) => {
