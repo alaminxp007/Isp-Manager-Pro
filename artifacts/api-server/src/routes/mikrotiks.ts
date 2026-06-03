@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { RouterOSAPI } from "node-routeros";
 import { db, mikrotiksTable, clientsTable, packagesTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth } from "../lib/auth";
@@ -27,33 +28,28 @@ function mapMikrotik(m: typeof mikrotiksTable.$inferSelect) {
   };
 }
 
-async function mkFetch(
+async function mkQuery(
   mk: { publicIp: string; login: string; password: string; webPort: number | null },
-  path: string,
-  method = "GET",
-  body?: object
-): Promise<unknown> {
-  const port = mk.webPort ?? 8090;
-  const url = `http://${mk.publicIp}:${port}/rest${path}`;
-  const auth = Buffer.from(`${mk.login}:${mk.password}`).toString("base64");
-
-  const res = await fetch(url, {
-    method,
-    headers: {
-      Authorization: `Basic ${auth}`,
-      "Content-Type": "application/json",
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-    signal: AbortSignal.timeout(10000),
+  command: string,
+  params: string[] = []
+): Promise<Array<Record<string, string>>> {
+  const port = mk.webPort ?? 8728;
+  const conn = new RouterOSAPI({
+    host: mk.publicIp,
+    user: mk.login,
+    password: mk.password,
+    port,
+    timeout: 10,
+    keepalive: false,
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`RouterOS ${res.status}: ${text || res.statusText}`);
+  await conn.connect();
+  try {
+    const data = await conn.write(command, params) as Array<Record<string, string>>;
+    return Array.isArray(data) ? data : [];
+  } finally {
+    conn.close();
   }
-
-  if (res.status === 204 || res.headers.get("content-length") === "0") return {};
-  return res.json().catch(() => ({}));
 }
 
 function formatBytes(bytes: number | string): string {
@@ -165,8 +161,8 @@ router.get("/mikrotiks/profiles", requireAuth, async (_req, res): Promise<void> 
 
   await Promise.all(connectedMks.map(async (mk) => {
     try {
-      const profiles = await mkFetch(mk, "/ppp/profile") as Array<Record<string, string>>;
-      (Array.isArray(profiles) ? profiles : []).forEach((p) => {
+      const profiles = await mkQuery(mk, "/ppp/profile/print");
+      profiles.forEach((p) => {
         if (p["name"] && p["name"] !== "*0") {
           allProfiles.push({
             name: p["name"],
@@ -195,8 +191,8 @@ router.get("/mikrotiks/:id/ppp-secrets", requireAuth, async (req, res): Promise<
   if (!mk) { res.status(404).json({ error: "not found" }); return; }
   if (mk.status !== "connected") { res.status(400).json({ error: "MikroTik is not connected" }); return; }
 
-  const secrets = await mkFetch(mk, "/ppp/secret") as Array<Record<string, string>>;
-  const list = (Array.isArray(secrets) ? secrets : []).map((s) => ({
+  const secrets = await mkQuery(mk, "/ppp/secret/print");
+  const list = secrets.map((s) => ({
     id: s[".id"] ?? "",
     name: s["name"] ?? "",
     service: s["service"] ?? "pppoe",
@@ -217,13 +213,13 @@ router.post("/mikrotiks/:id/test", requireAuth, async (req, res): Promise<void> 
   if (!mk) { res.status(404).json({ error: "MikroTik not found" }); return; }
 
   try {
-    const [resource, board] = await Promise.allSettled([
-      mkFetch(mk, "/system/resource"),
-      mkFetch(mk, "/system/routerboard"),
+    const [resourceRows, boardRows] = await Promise.all([
+      mkQuery(mk, "/system/resource/print"),
+      mkQuery(mk, "/system/routerboard/print"),
     ]);
 
-    const res_data = resource.status === "fulfilled" ? resource.value as Record<string, string> : null;
-    const board_data = board.status === "fulfilled" ? board.value as Record<string, string> : null;
+    const res_data = resourceRows[0] ?? null;
+    const board_data = boardRows[0] ?? null;
 
     const updateData: Record<string, unknown> = {
       status: "connected",
@@ -234,7 +230,6 @@ router.post("/mikrotiks/:id/test", requireAuth, async (req, res): Promise<void> 
     if (res_data?.["board-name"]) updateData.boardName = res_data["board-name"];
     if (board_data?.["model"]) updateData.model = board_data["model"];
     if (board_data?.["serial-number"]) updateData.macAddress = board_data["serial-number"];
-    if (res_data?.["platform"]) updateData.note = null;
 
     const [updated] = await db.update(mikrotiksTable).set(updateData).where(eq(mikrotiksTable.id, id)).returning();
 
@@ -258,8 +253,8 @@ router.get("/mikrotiks/:id/active", requireAuth, async (req, res): Promise<void>
   if (!mk) { res.status(404).json({ error: "MikroTik not found" }); return; }
 
   try {
-    const active = await mkFetch(mk, "/ppp/active") as Array<Record<string, string>>;
-    const connections = (Array.isArray(active) ? active : []).map((c) => ({
+    const active = await mkQuery(mk, "/ppp/active/print");
+    const connections = active.map((c) => ({
       id: c[".id"] ?? "",
       name: c["name"] ?? "",
       service: c["service"] ?? "pppoe",
@@ -285,12 +280,12 @@ router.post("/mikrotiks/:id/sync", requireAuth, async (req, res): Promise<void> 
 
   try {
     const [secrets, active] = await Promise.all([
-      mkFetch(mk, "/ppp/secret") as Promise<Array<Record<string, string>>>,
-      mkFetch(mk, "/ppp/active") as Promise<Array<Record<string, string>>>,
+      mkQuery(mk, "/ppp/secret/print"),
+      mkQuery(mk, "/ppp/active/print"),
     ]);
 
-    const activeNames = new Set((Array.isArray(active) ? active : []).map((a) => a["name"]));
-    const activeByName = new Map((Array.isArray(active) ? active : []).map((a) => [a["name"], a]));
+    const activeNames = new Set(active.map((a) => a["name"]));
+    const activeByName = new Map(active.map((a) => [a["name"], a]));
 
     let updated = 0;
     let notFound = 0;
@@ -346,8 +341,7 @@ router.get("/mikrotiks/:id/import-clients", requireAuth, async (req, res): Promi
   if (!mk) { res.status(404).json({ error: "not found" }); return; }
   if (mk.status !== "connected") { res.status(400).json({ error: "MikroTik is not connected" }); return; }
 
-  const secrets = await mkFetch(mk, "/ppp/secret") as Array<Record<string, string>>;
-  const secretList = Array.isArray(secrets) ? secrets : [];
+  const secretList = await mkQuery(mk, "/ppp/secret/print");
 
   const existingClients = await db.select({ username: clientsTable.username }).from(clientsTable);
   const existingUsernames = new Set(existingClients.map((c) => c.username));
@@ -387,8 +381,7 @@ router.post("/mikrotiks/:id/import-clients", requireAuth, async (req, res): Prom
     res.status(400).json({ error: "usernames array is required" }); return;
   }
 
-  const secrets = await mkFetch(mk, "/ppp/secret") as Array<Record<string, string>>;
-  const secretList = Array.isArray(secrets) ? secrets : [];
+  const secretList = await mkQuery(mk, "/ppp/secret/print");
 
   const packages = await db.select({ id: packagesTable.id, name: packagesTable.name, mikrotikProfile: packagesTable.mikrotikProfile }).from(packagesTable);
   const profileToPackage = new Map(packages.filter((p) => p.mikrotikProfile).map((p) => [p.mikrotikProfile!, p]));
@@ -440,7 +433,7 @@ router.post("/mikrotiks/:id/disconnect", requireAuth, async (req, res): Promise<
   if (!mk) { res.status(404).json({ error: "MikroTik not found" }); return; }
 
   try {
-    await mkFetch(mk, `/ppp/active/${encodeURIComponent(sessionId)}/remove`, "POST");
+    await mkQuery(mk, "/ppp/active/remove", [`=.id=${sessionId}`]);
 
     if (username) {
       const [client] = await db.select({ id: clientsTable.id }).from(clientsTable).where(eq(clientsTable.username, username)).limit(1);

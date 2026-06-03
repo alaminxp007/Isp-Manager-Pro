@@ -514,15 +514,15 @@ function QuickSettingsModal({
           ))}
 
           <div className="pt-1 border-t border-slate-100">
-            <label className="text-xs font-semibold text-slate-700 block mb-1">Web Port</label>
+            <label className="text-xs font-semibold text-slate-700 block mb-1">API Port (RouterOS)</label>
             <Input
               value={settings.webPort}
               onChange={(e) => setSettings((s) => ({ ...s, webPort: e.target.value }))}
-              placeholder="e.g. 8090"
+              placeholder="e.g. 8728 or 8090"
               className="h-8 text-xs border-slate-300"
             />
             {settings.activeGraph && !settings.webPort && (
-              <p className="text-[10px] text-red-500 mt-1">Web Port required when Active Graph is enabled</p>
+              <p className="text-[10px] text-red-500 mt-1">API Port required when Active Graph is enabled</p>
             )}
           </div>
         </div>
@@ -1119,16 +1119,16 @@ export default function Network() {
             {form.activeGraph && (
               <div className="grid grid-cols-3 gap-3">
                 <div />
-                <p className="col-span-2 text-[10px] text-red-500 italic">If Yes, You Require Web Port</p>
+                <p className="col-span-2 text-[10px] text-red-500 italic">If Yes, You Require API Port</p>
               </div>
             )}
 
             <div className="grid grid-cols-3 items-center gap-3">
-              <Label className="text-xs text-right text-slate-600">Web Port No</Label>
+              <Label className="text-xs text-right text-slate-600">API Port No</Label>
               <Input
                 value={form.webPort}
                 onChange={(e) => setForm((f) => ({ ...f, webPort: e.target.value }))}
-                placeholder="e.g. 8090 (MikroTik API port)"
+                placeholder="e.g. 8090 (RouterOS API service)"
                 className="col-span-2 h-8 text-xs border-slate-300 focus-visible:ring-sky-500 max-w-[180px]"
               />
             </div>
