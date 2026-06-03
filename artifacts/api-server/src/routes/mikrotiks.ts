@@ -33,7 +33,7 @@ async function mkFetch(
   method = "GET",
   body?: object
 ): Promise<unknown> {
-  const port = mk.webPort ?? 80;
+  const port = mk.webPort ?? 8090;
   const url = `http://${mk.publicIp}:${port}/rest${path}`;
   const auth = Buffer.from(`${mk.login}:${mk.password}`).toString("base64");
 

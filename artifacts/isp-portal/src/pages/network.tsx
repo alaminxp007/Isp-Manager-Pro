@@ -518,7 +518,7 @@ function QuickSettingsModal({
             <Input
               value={settings.webPort}
               onChange={(e) => setSettings((s) => ({ ...s, webPort: e.target.value }))}
-              placeholder="e.g. 8080"
+              placeholder="e.g. 8090"
               className="h-8 text-xs border-slate-300"
             />
             {settings.activeGraph && !settings.webPort && (
@@ -1128,7 +1128,7 @@ export default function Network() {
               <Input
                 value={form.webPort}
                 onChange={(e) => setForm((f) => ({ ...f, webPort: e.target.value }))}
-                placeholder="IP>Services>www"
+                placeholder="e.g. 8090 (MikroTik API port)"
                 className="col-span-2 h-8 text-xs border-slate-300 focus-visible:ring-sky-500 max-w-[180px]"
               />
             </div>
