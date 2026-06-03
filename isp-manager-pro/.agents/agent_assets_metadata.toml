@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "TByVWlBuKxX0eOIkC36ls"
+uri = "file://isp-manager-pro.tar.gz"
+type = "unspecified"
+title = "ISP Manager Pro — Full Project Archive (101MB)"
